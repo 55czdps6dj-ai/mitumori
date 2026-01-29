@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>営業見積シミュレーター</title>
+    <style>
+        :root { --blue: #00479d; --red: #e60012; --bg: #f8f9fa; --gray: #444; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; }
+        .header { background: var(--blue); color: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--red); position: sticky; top: 0; z-index: 1000; }
+        
+        /* 画面切り替え制御 */
+        .page { display: none; padding: 15px; }
+        .page.active { display: block; }
+
+        .section-title { background: var(--gray); color: white; padding: 10px 15px; font-weight: bold; margin-top: 10px; border-radius: 4px; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border-bottom: 1px solid #eee; }
+        
+        /* 入力UI */
+        .ctrls { display: flex; align-items: center; gap: 10px; }
+        .btn { width: 40px; height: 40px; background: #fff; border: 1px solid #ccc; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .qty-input { width: 45px; height: 35px; text-align: center; border: 1px solid #ccc; font-weight: bold; }
+        input[type="number"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+
+        /* ナビゲーションフッター */
+        .nav-footer { position: fixed; bottom: 0; width: 100%; background: white; border-top: 2px solid #ccc; padding: 15px; display: flex; justify-content: space-between; box-sizing: border-box; }
+        .nav-btn { padding: 12px 25px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-prev { background: #ccc; }
+        .btn-next { background: var(--blue); color: white; }
+        
+        /* 最終結果用 */
+        .result-card { background: white; padding: 15px; border-radius: 8px; border: 2px solid var(--blue); margin-bottom: 10px; }
+        .price-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .compare-box { padding: 10px; border-radius: 4px; text-align: center; }
+        .bg-weekday { background: #eef6ff; border: 1px solid var(--blue); }
+        .bg-holiday { background: #fff0f0; border: 1px solid var(--red); }
+    </style>
+</head>
+<body>
+
+<div class="header"><h1 id="page-title">荷物リスト入力</h1></div>
+
+<div id="step1" class="page active">
+    <div id="list-container"></div>
+</div>
+
+<div id="step2" class="page">
+    <div class="section-title">エアコン工事</div>
+    <div class="item"><span>取り外し (5,500円)</span><input type="number" id="ac-off" class="qty-input" value="0" onchange="updateCalc()"></div>
+    <div class="item"><span>取り付け (6,500円)</span><input type="number" id="ac-on" class="qty-input" value="0" onchange="updateCalc()"></div>
+    
+    <div class="section-title">実費・経費</div>
+    <div class="item"><span>養生費</span><input type="number" id="fee-yojo" placeholder="金額入力" onchange="updateCalc()"></div>
+    <div class="item"><span>有料道路代</span><input type="number" id="fee-road" placeholder="金額入力" onchange="updateCalc()"></div>
+    <div class="item"><span>運送保険</span>
+        <select id="fee-ins" onchange="updateCalc()">
+            <option value="auto">自動判定</option>
+            <option value="0">なし</option>
+        </select>
+    </div>
+</div>
+
+<div id="step3" class="page">
+    <div class="section-title">車両確定</div>
+    <div class="item"><span>2T車 台数</span><input type="number" id="unit-2t" class="qty-input" value="0" onchange="updateCalc()"></div>
+    <div class="item"><span>3T車 台数</span><input type="number" id="unit-3t" class="qty-input" value="0" onchange="updateCalc()"></div>
+    <div class="section-title">人員</div>
+    <div class="item"><span>作業員数</span><input type="number" id="unit-staff" class="qty-input" value="0" onchange="updateCalc()"></div>
+</div>
+
+<div id="step4" class="page">
+    <div class="section-title">割引設定</div>
+    <div class="item"><span>基本20%割引</span><input type="checkbox" id="disc-20" onchange="updateCalc()"></div>
+    <div class="item"><span>特別値引き(円)</span><input type="number" id="disc-extra" placeholder="金額入力" onchange="updateCalc()"></div>
+    
+    <div class="section-title">最終見積（税込想定）</div>
+    <div class="result-card">
+        <div class="price-compare">
+            <div class="compare-box bg-weekday">
+                <small>平日料金</small><br><strong id="res-weekday" style="font-size:1.4rem;">0</strong>円
+            </div>
+            <div class="compare-box bg-holiday">
+                <small>休日料金</small><br><strong id="res-holiday" style="font-size:1.4rem;">0</strong>円
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="nav-footer">
+    <button class="nav-btn btn-prev" onclick="movePage(-1)">戻る</button>
+    <span id="step-indicator" style="line-height:40px; font-weight:bold;">1 / 4</span>
+    <button class="nav-btn btn-next" onclick="movePage(1)">次へ</button>
+</div>
+
+<script>
+let currentPage = 1;
+const dataItems = [
+    {n:"ソファー 2人掛け", p:22}, {n:"冷蔵庫 5D", p:25}, {n:"洗濯機 ドラム", p:12}, {n:"タンス", p:18}, {n:"ダンボール", p:1}
+];
+
+// 初期描画
+function init() {
+    const container = document.getElementById('list-container');
+    dataItems.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `<span>${item.n} (${item.p}P)</span>
+            <div class="ctrls"><button class="btn" onclick="chg(${idx},-1)">－</button>
+            <input type="number" id="q${idx}" class="qty-input" value="0" data-pts="${item.p}" onchange="updateCalc()">
+            <button class="btn" onclick="chg(${idx},1)">＋</button></div>`;
+        container.appendChild(div);
+    });
+}
+
+function chg(idx, d) {
+    const el = document.getElementById('q'+idx);
+    el.value = Math.max(0, (parseInt(el.value) || 0) + d);
+    updateCalc();
+}
+
+function movePage(d) {
+    const next = currentPage + d;
+    if(next < 1 || next > 4) return;
+    document.getElementById(`step${currentPage}`).classList.remove('active');
+    document.getElementById(`step${next}`).classList.add('active');
+    currentPage = next;
+    document.getElementById('step-indicator').innerText = `${currentPage} / 4`;
+    const titles = ["荷物リスト入力", "付帯サービス", "配車・人員計画", "最終確認"];
+    document.getElementById('page-title').innerText = titles[currentPage-1];
+    window.scrollTo(0,0);
+}
+
+function updateCalc() {
+    // 1. 車両・人員ベース
+    const n2t = parseInt(document.getElementById('unit-2t').value) || 0;
+    const n3t = parseInt(document.getElementById('unit-3t').value) || 0;
+    const nStaff = parseInt(document.getElementById('unit-staff').value) || 0;
+
+    // 基本単価
+    const baseWd = (n2t * 34500) + (n3t * 36500) + (nStaff * 20000);
+    const baseHd = (n2t * 44500) + (n3t * 46500) + (nStaff * 30000);
+
+    // 2. 付帯工事
+    const acOff = (parseInt(document.getElementById('ac-off').value) || 0) * 5500;
+    const acOn = (parseInt(document.getElementById('ac-on').value) || 0) * 6500;
+    const yojo = parseInt(document.getElementById('fee-yojo').value) || 0;
+    const road = parseInt(document.getElementById('fee-road').value) || 0;
+
+    // 3. 保険料判定
+    let ins = 0;
+    const insSel = document.getElementById('fee-ins').value;
+    if(insSel === "auto") {
+        if(n3t > 0) ins = 3000;
+        else if(n2t > 0) ins = 2000;
+    }
+
+    const subTotalWd = baseWd + acOff + acOn + yojo + road + ins;
+    const subTotalHd = baseHd + acOff + acOn + yojo + road + ins;
+
+    // 4. 割引
+    let finalWd = subTotalWd;
+    let finalHd = subTotalHd;
+    if(document.getElementById('disc-20').checked) {
+        finalWd *= 0.8;
+        finalHd *= 0.8;
+    }
+    const extraDisc = parseInt(document.getElementById('disc-extra').value) || 0;
+    finalWd -= extraDisc;
+    finalHd -= extraDisc;
+
+    document.getElementById('res-weekday').innerText = Math.floor(finalWd).toLocaleString();
+    document.getElementById('res-holiday').innerText = Math.floor(finalHd).toLocaleString();
+}
+
+init();
+</script>
+</body>
+</html>
