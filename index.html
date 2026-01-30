@@ -3,154 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>営業見積プロ v3.6</title>
+    <title>営業見積プロ v3.7</title>
     <style>
         :root { --blue: #00479d; --red: #e60012; --bg: #f4f7f9; --gray: #444; --green: #28a745; --orange: #f39c12; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 120px; color: #333; }
-        .header { background: var(--blue); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; }
-        .page { display: none; padding: 10px; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 120px; color: #333; line-height: 1.4; }
+        
+        .header { background: var(--blue); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--red); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { margin: 0; font-size: 1rem; }
+
+        .page { display: none; padding: 10px; animation: fadeIn 0.1s; }
         .page.active { display: block; }
-        .pts-banner { background: var(--blue); color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 10px; }
-        
-        /* カテゴリ（大枠） */
-        .section-title { background: var(--gray); color: white; padding: 10px; margin-top: 10px; border-radius: 4px; font-size: 0.85rem; }
-        
-        /* アイテムグループ（ソファー等） */
-        .item-group { background: white; border: 1px solid #ddd; margin-bottom: 5px; border-radius: 6px; overflow: hidden; }
-        .group-header { padding: 12px 15px; font-weight: bold; background: #fff; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .pts-banner { background: var(--blue); color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 10px; position: sticky; top: 60px; z-index: 99; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .pts-banner span { font-size: 1.5rem; }
+
+        /* 1段目アコーディオン（カテゴリー） */
+        .cat-title { background: var(--gray); color: white; padding: 12px; margin-top: 10px; border-radius: 4px; font-size: 0.9rem; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; }
+        .cat-content { display: none; }
+        .cat-content.active { display: block; }
+
+        /* 2段目アコーディオン（アイテムグループ） */
+        .group-item { background: white; border: 1px solid #ddd; margin: 5px 0; border-radius: 6px; }
+        .group-header { padding: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .group-header::after { content: '▼'; font-size: 0.7rem; color: #888; }
         .group-header.open::after { content: '▲'; }
-        .group-content { display: none; background: #fafafa; }
+        .group-content { display: none; background: #fafafa; border-top: 1px solid #eee; }
         .group-content.active { display: block; }
 
         /* 個別バリエーション */
-        .variation-row { padding: 10px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .var-info { display: flex; flex-direction: column; flex: 1; }
-        .var-name { font-size: 0.85rem; font-weight: bold; }
-        .var-size { font-size: 0.7rem; color: #666; font-family: monospace; }
+        .var-row { padding: 10px 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .var-info { flex: 1; }
+        .var-name { font-size: 0.85rem; font-weight: bold; display: block; }
+        .var-size { font-size: 0.7rem; color: #666; font-family: monospace; display: block; margin: 2px 0; }
         .var-pts { font-size: 0.75rem; color: var(--blue); font-weight: bold; }
 
         .ctrls { display: flex; align-items: center; gap: 5px; }
-        .qty-input { width: 50px; height: 35px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; }
-        .btn-qty { width: 34px; height: 34px; background: white; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; }
-        
+        .qty-input { width: 55px; height: 36px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; font-size: 1rem; }
+        .btn-qty { width: 36px; height: 36px; background: white; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .unit-label { font-size: 0.8rem; min-width: 20px; color: #666; }
+
         .nav-footer { position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid #ddd; padding: 12px; display: flex; justify-content: space-between; box-sizing: border-box; z-index: 999; }
-        .nav-btn { padding: 10px 20px; border-radius: 6px; border: none; font-weight: bold; }
+        .nav-btn { padding: 10px 20px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
         .btn-next { background: var(--blue); color: white; }
+
+        .item-calc-price { font-size: 0.85rem; color: var(--red); font-weight: bold; text-align: right; width: 100%; display: none; margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <div style="width:30px"></div>
-    <h1 id="page-title" style="font-size:1rem; margin:0;">家財選択</h1>
+    <h1 id="page-title">家財リスト</h1>
     <div style="width:30px"></div>
 </div>
 
 <div id="step1" class="page active">
-    <div class="pts-banner">合計体積: <span id="grand-total-pts">0</span> P</div>
+    <div class="pts-banner">現在の合計体積: <span id="total-pts-1">0</span> P</div>
     <div id="list-container"></div>
 </div>
 
-<div id="step2" class="page">... (付帯工事画面) ...</div>
-<div id="step3" class="page">... (配車画面) ...</div>
-<div id="step4" class="page">... (比較画面) ...</div>
+<div id="step2" class="page">
+    <div class="cat-title" style="cursor:default">付帯サービス（円表示）</div>
+    <div id="futa-inputs" style="background:white; border-radius:0 0 4px 4px;"></div>
+    <div class="cat-title" style="cursor:default">実費・経費</div>
+    <div style="background:white; border-radius:0 0 4px 4px;">
+        <div class="var-row"><span>養生費</span><div class="ctrls"><input type="number" id="fee-yojo" class="qty-input" value="0" onchange="updateCalc()"><span class="unit-label">円</span></div></div>
+        <div class="var-row"><span>有料道路代</span><div class="ctrls"><input type="number" id="fee-road" class="qty-input" value="0" onchange="updateCalc()"><span class="unit-label">円</span></div></div>
+        <div class="var-row"><span>運送保険料</span><div class="ctrls"><input type="number" id="fee-ins" class="qty-input" value="0" onchange="updateCalc()"><span class="unit-label">円</span></div></div>
+    </div>
+</div>
+
+<div id="step3" class="page">
+    <div class="pts-banner" style="background:var(--orange)">荷物量: <span id="total-pts-3">0</span> P</div>
+    <div class="cat-title" style="cursor:default">配車計画</div>
+    <div style="background:white; padding:5px;">
+        <div class="var-row"><span>2T車</span><div class="ctrls"><input type="number" id="unit-2t" class="qty-input" value="0" min="0" onchange="updateCalc()"><span class="unit-label">台</span></div></div>
+        <div class="var-row"><span>3T車</span><div class="ctrls"><input type="number" id="unit-3t" class="qty-input" value="0" min="0" onchange="updateCalc()"><span class="unit-label">台</span></div></div>
+        <div class="var-row"><span>作業員</span><div class="ctrls"><input type="number" id="unit-staff" class="qty-input" value="0" min="0" onchange="updateCalc()"><span class="unit-label">名</span></div></div>
+    </div>
+    <div class="cat-title" style="cursor:default">フリー便設定</div>
+    <div class="var-row" style="background:white;"><span>想定作業時間</span><div class="ctrls"><input type="number" id="work-time" class="qty-input" value="0" step="0.5" min="0" onchange="updateCalc()"><span class="unit-label">h</span></div></div>
+</div>
+
+<div id="step4" class="page">
+    </div>
 
 <div class="nav-footer">
     <button class="nav-btn" onclick="movePage(-1)">戻る</button>
-    <span id="step-indicator">1 / 4</span>
+    <span id="step-indicator" style="font-weight:bold">1 / 4</span>
     <button class="nav-btn btn-next" onclick="movePage(1)">次へ</button>
 </div>
 
 <script>
-// 生データをグループ化して管理
-const rawData = {
-    "リビング": [
-        {g: "ソファー", variations: [{n:"1人掛け", h:72, w:69, d:68.5, p:9}, {n:"2人掛け", h:78, w:140, d:78, p:22}, {n:"3人掛け", h:98, w:207, d:98, p:50}]},
-        {g: "テレビ", variations: [{n:"液晶32型", h:39.8, w:70.8, d:15, p:2}, {n:"液晶37型", h:46.1, w:81.9, d:15, p:2}, {n:"液晶40型", h:49.8, w:88.5, d:15, p:2}, {n:"液晶43型", h:53.5, w:95.2, d:15, p:2}]},
-        {g: "仏壇", variations: [{n:"小", h:41.5, w:33, d:28, p:1}, {n:"中", h:100, w:50, d:42, p:6}, {n:"大", h:130, w:80, d:45, p:12}]},
-        {g: "エアコン", variations: [{n:"通常型", h:90, w:80, d:30, p:6}, {n:"ウィンドウ型", h:30, w:80, d:30, p:2}]}
+// --- 117項目データ構造化 ---
+const moveData = {
+    "リビング家具・家電": [
+        {g:"ソファー", v:[{n:"1人掛け", h:72, w:69, d:68.5, p:9}, {n:"2人掛け", h:78, w:140, d:78, p:22}, {n:"3人掛け", h:98, w:207, d:98, p:50}]},
+        {g:"テレビ", v:[{n:"32型", h:39.8, w:70.8, d:15, p:2}, {n:"37型", h:46.1, w:81.9, d:15, p:2}, {n:"40型", h:49.8, w:88.5, d:15, p:2}, {n:"43型", h:53.5, w:95.2, d:15, p:2}]},
+        {g:"テレビ台", v:[{n:"小", h:37, w:67, d:35, p:3}, {n:"中", h:45, w:120, d:45, p:7}, {n:"大", h:40, w:170, d:45, p:8}]},
+        {g:"仏壇", v:[{n:"小", h:41.5, w:33, d:28, p:1}, {n:"中", h:100, w:50, d:42, p:6}, {n:"大", h:130, w:80, d:45, p:12}]},
+        {g:"エアコン", v:[{n:"壁掛型", h:90, w:80, d:30, p:6}, {n:"ウィンドウ型", h:30, w:80, d:30, p:2}]},
+        {g:"その他リビング", v:[{n:"サイドボード", h:70, w:150, d:46, p:13}, {n:"リビングボード", h:120, w:58, d:40, p:7}, {n:"マッサージチェア", h:112, w:76, d:120, p:26}]}
     ],
-    "キッチン": [
-        {g: "冷蔵庫", variations: [{n:"2D", h:122.5, w:48, d:59.5, p:9}, {n:"3D", h:155.5, w:54, d:65.5, p:14}, {n:"4D", h:180, w:60, d:70, p:19}, {n:"5D", h:190, w:68.5, d:75, p:25}]},
-        {g: "食器棚", variations: [{n:"小", h:85.7, w:119.6, d:50.5, p:13}, {n:"中", h:202, w:60, d:49, p:15}, {n:"大", h:175, w:88, d:42, p:17}, {n:"特大", h:202, w:160, d:51, p:42}]}
+    "キッチン周り": [
+        {g:"冷蔵庫", v:[{n:"2D", h:122.5, w:48, d:59.5, p:9}, {n:"3D", h:155.5, w:54, d:65.5, p:14}, {n:"4D", h:180, w:60, d:70, p:19}, {n:"5D", h:190, w:68.5, d:75, p:25}, {n:"冷凍庫", h:84.5, w:55, d:58, p:7}]},
+        {g:"食器棚", v:[{n:"小", h:85.7, w:119.6, d:50.5, p:13}, {n:"中", h:202, w:60, d:49, p:15}, {n:"大", h:175, w:88, d:42, p:17}, {n:"特大", h:202, w:160, d:51, p:42}]},
+        {g:"調理家電", v:[{n:"電子レンジ", h:45.8, w:40, d:35.4, p:2}, {n:"ガステーブル", h:22, w:56, d:44.5, p:2}, {n:"食器洗浄機", h:35.5, w:49, d:42.5, p:2}]}
     ],
-    "その他": [
-        {g: "整理タンス", variations: [{n:"小", h:92, w:51, d:41, p:5}, {n:"中", h:90, w:80, d:40, p:8}, {n:"大", h:137, w:100, d:42, p:15}]},
-        {g: "ベッド", variations: [{n:"通常", h:20, w:200, d:90, p:9}, {n:"引出し付", h:40, w:200, d:90, p:18}, {n:"二段式", h:30, w:200, d:90, p:14}, {n:"ソファーベッド", h:98, w:207, d:98, p:50}]}
+    "寝室・収納・その他": [
+        {g:"タンス", v:[{n:"洋服タンス", h:190, w:100, d:60, p:29}, {n:"和タンス", h:120, w:100, d:60, p:18}, {n:"整理タンス中", h:90, w:80, d:40, p:8}]},
+        {g:"ベッド", v:[{n:"シングル", h:20, w:200, d:90, p:9}, {n:"引き出し付", h:40, w:200, d:90, p:18}, {n:"ソファーベッド", h:98, w:207, d:98, p:50}]},
+        {g:"外回り・趣味", v:[{n:"大人用自転車", h:90, w:140, d:45, p:15}, {n:"子供用自転車", h:45, w:80, d:40, p:4}, {n:"ゴルフバッグ", h:130, w:45, d:45, p:7}]}
+    ],
+    "資材・小物": [
+        {g:"箱類", v:[{n:"ダンボールA", h:44, w:32, d:28, p:1}, {n:"ダンボールB", h:51, w:42, d:36, p:2}, {n:"衣装ケース", h:30, w:44, d:73, p:3}]},
+        {g:"特殊資材", v:[{n:"ハンガーBOX", h:100, w:47.5, d:51.5, p:7}, {n:"台車", h:16, w:91.2, d:60.4, p:3}]}
     ]
 };
+
+const futai = [{id:"ac-off", n:"エアコン取外", p:5500}, {id:"ac-on", n:"エアコン取付", p:6500}, {id:"washer", n:"洗濯機設置", p:3300}];
 
 let counts = {};
 
 function init() {
-    const container = document.getElementById('list-container');
-    for (let cat in rawData) {
+    const list = document.getElementById('list-container');
+    for (let catName in moveData) {
+        // 1段目
         const catTitle = document.createElement('div');
-        catTitle.className = 'section-title';
-        catTitle.innerText = cat;
-        container.appendChild(catTitle);
+        catTitle.className = 'cat-title';
+        catTitle.innerHTML = `<span>${catName}</span><span>▼</span>`;
+        const catContent = document.createElement('div');
+        catContent.className = 'cat-content';
+        catTitle.onclick = () => { catContent.classList.toggle('active'); };
 
-        rawData[cat].forEach(group => {
+        // 2段目
+        moveData[catName].forEach(group => {
             const gDiv = document.createElement('div');
-            gDiv.className = 'item-group';
-            
+            gDiv.className = 'group-item';
             const gHeader = document.createElement('div');
             gHeader.className = 'group-header';
-            gHeader.innerHTML = `<span>${group.g}</span><span id="g-total-${group.g}" style="font-size:0.75rem; color:var(--blue);">0 P</span>`;
-            
+            gHeader.innerHTML = `<span>${group.g}</span><span id="gsum-${group.g}" style="font-size:0.7rem; color:var(--blue)">0P</span>`;
             const gContent = document.createElement('div');
             gContent.className = 'group-content';
-            
-            gHeader.onclick = () => {
-                gHeader.classList.toggle('open');
-                gContent.classList.toggle('active');
-            };
+            gHeader.onclick = (e) => { e.stopPropagation(); gHeader.classList.toggle('open'); gContent.classList.toggle('active'); };
 
-            group.variations.forEach(v => {
+            group.v.forEach(v => {
                 const id = group.g + v.n;
                 const row = document.createElement('div');
-                row.className = 'variation-row';
-                row.innerHTML = `
-                    <div class="var-info">
-                        <span class="var-name">${v.n}</span>
-                        <span class="var-size">H${v.h} W${v.w} D${v.d}</span>
-                        <span class="var-pts">${v.p}P</span>
-                    </div>
-                    <div class="ctrls">
-                        <button class="btn-qty" onclick="chg('${id}',-1,${v.p},'${group.g}')">－</button>
-                        <input type="number" id="q-${id}" class="qty-input" value="0" readonly>
-                        <button class="btn-qty" onclick="chg('${id}',1,${v.p},'${group.g}')">＋</button>
-                    </div>`;
+                row.className = 'var-row';
+                row.innerHTML = `<div class="var-info"><span class="var-name">${v.n}</span><span class="var-size">H${v.h} W${v.w} D${v.d}</span><span class="var-pts">${v.p}P</span></div>
+                    <div class="ctrls"><button class="btn-qty" onclick="chg('${id}',-1,${v.p},'${group.g}')">－</button>
+                    <input type="number" id="q-${id}" class="qty-input" value="0" readonly>
+                    <button class="btn-qty" onclick="chg('${id}',1,${v.p},'${group.g}')">＋</button></div>`;
                 gContent.appendChild(row);
             });
-            
-            gDiv.appendChild(gHeader);
-            gDiv.appendChild(gContent);
-            container.appendChild(gDiv);
+            gDiv.appendChild(gHeader); gDiv.appendChild(gContent); catContent.appendChild(gDiv);
         });
+        list.appendChild(catTitle); list.appendChild(catContent);
     }
+    // 付帯工事初期化（省略せず実装）
+    const fArea = document.getElementById('futa-inputs');
+    futai.forEach(f => {
+        const d = document.createElement('div'); d.className='var-row';
+        d.innerHTML = `<span>${f.n}</span><div class="ctrls"><input type="number" id="${f.id}" class="qty-input" value="0" min="0" onchange="updateCalc()"><span class="unit-label">台/件</span></div>
+            <div id="price-${f.id}" class="item-calc-price">0円</div>`;
+        fArea.appendChild(d);
+    });
 }
 
-function chg(id, d, p, groupName) {
-    counts[id] = Math.max(0, (counts[id] || 0) + d);
-    document.getElementById('q-' + id).value = counts[id];
-    
-    // グループ合計の更新
-    let grandTotal = 0;
-    for(let cat in rawData) {
-        rawData[cat].forEach(g => {
-            let groupSum = 0;
-            g.variations.forEach(v => {
-                groupSum += (counts[g.g + v.n] || 0) * v.p;
-            });
-            if(document.getElementById(`g-total-${g.g}`)) {
-                document.getElementById(`g-total-${g.g}`).innerText = groupSum + " P";
-            }
-            grandTotal += groupSum;
+function chg(id, d, p, gName) {
+    counts[id] = Math.max(0, (counts[id]||0) + d);
+    document.getElementById('q-'+id).value = counts[id];
+    let grand = 0;
+    for(let c in moveData) {
+        moveData[c].forEach(g => {
+            let gSum = 0;
+            g.v.forEach(v => { gSum += (counts[g.g+v.n]||0) * v.p; });
+            if(document.getElementById('gsum-'+g.g)) document.getElementById('gsum-'+g.g).innerText = gSum + "P";
+            grand += gSum;
         });
     }
-    document.getElementById('grand-total-pts').innerText = grandTotal;
+    document.getElementById('total-pts-1').innerText = grand;
+    document.getElementById('total-pts-3').innerText = grand;
+    updateCalc();
+}
+
+let currentPage = 1;
+function movePage(d) {
+    const next = currentPage + d; if(next<1 || next>4) return;
+    document.getElementById(`step${currentPage}`).classList.remove('active');
+    document.getElementById(`step${next}`).classList.add('active');
+    currentPage = next; document.getElementById('step-indicator').innerText = currentPage + " / 4";
+    window.scrollTo(0,0);
+}
+
+function updateCalc() {
+    // 以前のロジック（付帯工事の個別価格表示含む）をここに集約
+    futai.forEach(f => {
+        const q = parseInt(document.getElementById(f.id).value)||0;
+        const pEl = document.getElementById('price-'+f.id);
+        if(q>0) { pEl.innerText = (q * f.p).toLocaleString() + "円"; pEl.style.display="block"; }
+        else { pEl.style.display="none"; }
+    });
 }
 
 init();
