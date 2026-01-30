@@ -2,136 +2,42 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>営業見積プロ v4.0</title>
+    <title>【管理】単価設定 - 営業見積プロ</title>
     <style>
-        :root { --blue: #00479d; --red: #e60012; --bg: #f4f7f9; --gray: #444; --green: #28a745; --orange: #f39c12; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 120px; color: #333; }
-        
-        /* ヘッダー */
-        .header { background: var(--blue); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--red); display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { margin: 0; font-size: 1rem; }
-
-        /* 共通レイアウト */
-        .page { display: none; padding: 10px; animation: fadeIn 0.1s; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* ポイント表示バナー */
-        .pts-banner { background: var(--blue); color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 10px; position: sticky; top: 60px; z-index: 99; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .pts-banner span { font-size: 1.5rem; }
-
-        /* 2段アコーディオン */
-        .cat-title { background: var(--gray); color: white; padding: 12px; margin-top: 10px; border-radius: 4px; font-size: 0.9rem; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; }
-        .cat-content { display: none; }
-        .cat-content.active { display: block; }
-
-        .group-item { background: white; border: 1px solid #ddd; margin: 5px 0; border-radius: 6px; }
-        .group-header { padding: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
-        .group-header.open::after { content: '▲'; font-size: 0.7rem; }
-        .group-header::after { content: '▼'; font-size: 0.7rem; }
-        .group-content { display: none; background: #fafafa; border-top: 1px solid #eee; }
-        .group-content.active { display: block; }
-
-        /* 行スタイル */
-        .var-row { padding: 10px 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .var-info { flex: 1; }
-        .var-name { font-size: 0.8rem; font-weight: bold; display: block; }
-        .var-size { font-size: 0.65rem; color: #666; font-family: monospace; }
-        
-        /* 入力・スピンボタン */
-        .ctrls { display: flex; align-items: center; gap: 5px; }
-        .qty-input { width: 65px; height: 38px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; font-size: 1rem; }
-        .btn-qty { width: 38px; height: 38px; background: white; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .unit-label { font-size: 0.8rem; min-width: 25px; color: #666; }
-
-        /* 料金表示 */
-        .item-calc-price { font-size: 0.85rem; color: var(--red); font-weight: bold; text-align: right; width: 100%; display: none; margin-top: 5px; }
-
-        /* STEP 4 比較テーブル */
-        .compare-table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .compare-table th { background: #eee; padding: 10px; font-size: 0.8rem; }
-        .compare-table td { border: 1px solid #eee; padding: 15px 5px; text-align: center; }
-        .price-val { font-size: 1.2rem; font-weight: bold; color: var(--red); }
-        .price-val::after { content: " 円"; font-size: 0.7rem; }
-
-        /* フッターナビ */
-        .nav-footer { position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid #ddd; padding: 12px; display: flex; justify-content: space-between; box-sizing: border-box; align-items: center; z-index: 999; }
-        .nav-btn { padding: 10px 25px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        .btn-next { background: var(--blue); color: white; }
+        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { border-bottom: 2px solid #00479d; padding-bottom: 10px; color: #00479d; }
+        h2 { font-size: 1.1rem; margin-top: 25px; color: #444; background: #eee; padding: 5px 10px; border-radius: 4px; }
+        .input-group { display: grid; grid-template-columns: 200px 1fr 50px; gap: 10px; margin-bottom: 8px; align-items: center; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+        .save-area { margin-top: 30px; padding: 20px; background: #fff4e5; border-radius: 8px; text-align: center; }
+        .btn-save { background: #28a745; color: white; padding: 15px 30px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
+        .btn-save:hover { background: #218838; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #00479d; text-decoration: none; }
     </style>
 </head>
 <body>
+    <div class="container">
+        <a href="index.html" class="back-link">← 見積画面へ戻る</a>
+        <h1>システム設定管理 (config.js)</h1>
+        
+        <div id="master-settings">
+            <h2>車両・作業員 基本単価 (平日/休日)</h2>
+            <div id="master-inputs"></div>
+        </div>
 
-<div class="header">
-    <div style="width:30px"></div>
-    <h1 id="page-title">家財リスト</h1>
-    <div style="width:30px"></div>
-</div>
+        <div id="futai-settings">
+            <h2>付帯サービス・工事料金</h2>
+            <div id="futai-inputs"></div>
+        </div>
 
-<div id="step1" class="page active">
-    <div class="pts-banner">現在の合計体積: <span id="total-pts-1">0</span> P</div>
-    <div id="list-container"></div>
-</div>
-
-<div id="step2" class="page">
-    <div class="cat-title" style="cursor:default">付帯サービス（単価×数量）</div>
-    <div id="futa-inputs" style="background:white;"></div>
-    
-    <div class="cat-title" style="cursor:default">実費・経費</div>
-    <div style="background:white;">
-        <div class="var-row"><span>養生費</span><div class="ctrls"><input type="number" id="fee-yojo" class="qty-input" value="0" onchange="updateCalc()"><span class="unit-label">円</span></div></div>
-        <div class="var-row"><span>有料道路代</span><div class="ctrls"><input type="number" id="fee-road" class="qty-input" value="0" onchange="updateCalc()"><span class="unit-label">円</span></div></div>
-        <div class="var-row"><span>運送保険料</span><div class="ctrls"><input type="number" id="fee-ins" class="qty-input" value="0" onchange="updateCalc()"><span class="unit-label">円</span></div></div>
-    </div>
-</div>
-
-<div id="step3" class="page">
-    <div class="pts-banner" style="background:var(--orange)">荷物量: <span id="total-pts-3">0</span> P</div>
-    <div class="cat-title" style="cursor:default">配車計画</div>
-    <div style="background:white;">
-        <div class="var-row"><span>2T車</span><div class="ctrls"><input type="number" id="unit-2t" class="qty-input" value="0" min="0" onchange="updateCalc()"><span class="unit-label">台</span></div></div>
-        <div class="var-row"><span>3T車</span><div class="ctrls"><input type="number" id="unit-3t" class="qty-input" value="0" min="0" onchange="updateCalc()"><span class="unit-label">台</span></div></div>
-        <div class="var-row"><span>作業員</span><div class="ctrls"><input type="number" id="unit-staff" class="qty-input" value="0" min="0" onchange="updateCalc()"><span class="unit-label">名</span></div></div>
-    </div>
-    <div class="cat-title" style="cursor:default">フリー便設定</div>
-    <div class="var-row" style="background:white;">
-        <span>想定作業時間</span>
-        <div class="ctrls">
-            <input type="number" id="work-time" class="qty-input" value="0" step="0.5" min="0" onchange="updateCalc()">
-            <span class="unit-label">h</span>
+        <div class="save-area">
+            <p style="font-size: 0.9rem; color: #666;">※[保存して更新] を押すと、新しい <b>config.js</b> がダウンロードされます。<br>現在のファイルをこの新しいファイルで上書きしてください。</p>
+            <button class="btn-save" onclick="generateConfigJS()">新しい config.js を保存して更新</button>
         </div>
     </div>
-</div>
 
-<div id="step4" class="page">
-    <div style="background:#fff4e5; padding:12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--orange); margin-bottom:15px;">
-        <span style="font-weight:bold; color:var(--orange)">⚠️ 繁忙期モード(×1.5)</span>
-        <input type="checkbox" id="is-busy" onchange="updateCalc()" style="width:28px; height:28px">
-    </div>
-
-    <table class="compare-table">
-        <tr><th>区分</th><th>平日</th><th>休日</th></tr>
-        <tr><td>時間指定</td><td><span id="wd-fixed" class="price-val">0</span></td><td><span id="hd-fixed" class="price-val">0</span></td></tr>
-        <tr><td style="color:var(--green)">指定なし</td><td><span id="wd-free" class="price-val" style="color:var(--green)">0</span></td><td><span id="hd-free" class="price-val" style="color:var(--green)">0</span></td></tr>
-    </table>
-
-    <div class="cat-title" style="cursor:default">割引調整 (時間指定に適用)</div>
-    <div style="background:white;">
-        <div class="var-row"><span>基本20%割引</span><input type="checkbox" id="disc-20" onchange="updateCalc()" style="width:22px; height:22px"></div>
-        <div class="var-row"><span>特別値引き</span><div class="ctrls"><input type="number" id="disc-extra" class="qty-input" style="width:110px" value="0" onchange="updateCalc()"><span class="unit-label">円</span></div></div>
-    </div>
-</div>
-
-<div class="nav-footer">
-    <button class="nav-btn" onclick="movePage(-1)">戻る</button>
-    <span id="step-indicator" style="font-weight:bold">1 / 4</span>
-    <button class="nav-btn btn-next" onclick="movePage(1)">次へ</button>
-</div>
-
-<script src="config.js"></script>
-<script src="item_list.js"></script>
-<script src="app.js"></script>
-
+    <script src="config.js"></script>
+    <script src="admin.js"></script>
 </body>
 </html>
