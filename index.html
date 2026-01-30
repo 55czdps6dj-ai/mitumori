@@ -5,40 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>営業見積シミュレーター</title>
     <style>
-        :root { --blue: #00479d; --red: #e60012; --bg: #f8f9fa; --gray: #444; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; }
+        :root { --blue: #00479d; --red: #e60012; --bg: #f8f9fa; --gray: #444; --green: #28a745; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 120px; -webkit-user-select: none; }
+        
+        /* ヘッダー */
         .header { background: var(--blue); color: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--red); position: sticky; top: 0; z-index: 1000; }
-        
-        /* 画面切り替え制御 */
-        .page { display: none; padding: 15px; }
+        .header h1 { margin: 0; font-size: 1.1rem; }
+
+        /* 画面切り替え */
+        .page { display: none; padding: 15px; animation: fadeIn 0.3s; }
         .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .section-title { background: var(--gray); color: white; padding: 10px 15px; font-weight: bold; margin-top: 10px; border-radius: 4px; }
-        .item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border-bottom: 1px solid #eee; }
-        
-        /* 入力UI */
+        /* 共通スタイル */
+        .section-title { background: var(--gray); color: white; padding: 10px 15px; font-weight: bold; margin-top: 15px; border-radius: 4px; font-size: 0.9rem; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border-bottom: 1px solid #eee; min-height: 50px; }
+        .item span { font-size: 0.95rem; font-weight: bold; }
+
+        /* 入力パーツ */
         .ctrls { display: flex; align-items: center; gap: 10px; }
-        .btn { width: 40px; height: 40px; background: #fff; border: 1px solid #ccc; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .qty-input { width: 45px; height: 35px; text-align: center; border: 1px solid #ccc; font-weight: bold; }
-        input[type="number"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-
-        /* ナビゲーションフッター */
-        .nav-footer { position: fixed; bottom: 0; width: 100%; background: white; border-top: 2px solid #ccc; padding: 15px; display: flex; justify-content: space-between; box-sizing: border-box; }
-        .nav-btn { padding: 12px 25px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-prev { background: #ccc; }
-        .btn-next { background: var(--blue); color: white; }
+        .btn-qty { width: 40px; height: 40px; background: #fff; border: 1px solid #ccc; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 0 #ddd; }
+        .btn-qty:active { transform: translateY(2px); box-shadow: none; background: #f0f0f0; }
+        .qty-input { width: 55px; height: 35px; text-align: center; border: 1px solid #ccc; font-size: 1.1rem; font-weight: bold; border-radius: 4px; }
+        .input-text { width: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: right; font-size: 1rem; }
         
-        /* 最終結果用 */
-        .result-card { background: white; padding: 15px; border-radius: 8px; border: 2px solid var(--blue); margin-bottom: 10px; }
-        .price-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .compare-box { padding: 10px; border-radius: 4px; text-align: center; }
-        .bg-weekday { background: #eef6ff; border: 1px solid var(--blue); }
-        .bg-holiday { background: #fff0f0; border: 1px solid var(--red); }
+        /* スライダー */
+        .slider-container { background: white; padding: 15px; border-bottom: 1px solid #eee; }
+        input[type="range"] { width: 100%; margin: 15px 0; }
+
+        /* 比較テーブル */
+        .compare-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .compare-table th, .compare-table td { border: 1px solid #eee; padding: 12px 8px; text-align: center; }
+        .compare-table th { background: #f8f8f8; font-size: 0.8rem; color: #666; }
+        .price-val { font-size: 1.1rem; font-weight: bold; color: var(--red); display: block; }
+        .highlight-green { color: var(--green) !important; }
+
+        /* ナビゲーション */
+        .nav-footer { position: fixed; bottom: 0; width: 100%; background: white; border-top: 2px solid #ccc; padding: 15px; display: flex; justify-content: space-between; box-sizing: border-box; align-items: center; z-index: 1001; }
+        .nav-btn { padding: 12px 25px; border-radius: 8px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        .btn-prev { background: #ccc; color: #333; }
+        .btn-next { background: var(--blue); color: white; }
+        #step-indicator { font-weight: bold; color: var(--blue); }
     </style>
 </head>
 <body>
 
-<div class="header"><h1 id="page-title">荷物リスト入力</h1></div>
+<div class="header">
+    <h1 id="page-title">荷物リスト入力</h1>
+</div>
 
 <div id="step1" class="page active">
     <div id="list-container"></div>
@@ -49,46 +63,57 @@
     <div class="item"><span>取り外し (5,500円)</span><input type="number" id="ac-off" class="qty-input" value="0" onchange="updateCalc()"></div>
     <div class="item"><span>取り付け (6,500円)</span><input type="number" id="ac-on" class="qty-input" value="0" onchange="updateCalc()"></div>
     
-    <div class="section-title">実費・経費</div>
-    <div class="item"><span>養生費</span><input type="number" id="fee-yojo" placeholder="金額入力" onchange="updateCalc()"></div>
-    <div class="item"><span>有料道路代</span><input type="number" id="fee-road" placeholder="金額入力" onchange="updateCalc()"></div>
-    <div class="item"><span>運送保険</span>
-        <select id="fee-ins" onchange="updateCalc()">
-            <option value="auto">自動判定</option>
-            <option value="0">なし</option>
-        </select>
-    </div>
+    <div class="section-title">実費・経費入力</div>
+    <div class="item"><span>養生費</span><input type="number" id="fee-yojo" class="input-text" placeholder="金額" onchange="updateCalc()"></div>
+    <div class="item"><span>有料道路代</span><input type="number" id="fee-road" class="input-text" placeholder="金額" onchange="updateCalc()"></div>
+    <div class="item"><span>運送保険料</span><input type="number" id="fee-ins" class="input-text" placeholder="金額" onchange="updateCalc()"></div>
 </div>
 
 <div id="step3" class="page">
-    <div class="section-title">車両確定</div>
+    <div class="section-title">配車確定</div>
     <div class="item"><span>2T車 台数</span><input type="number" id="unit-2t" class="qty-input" value="0" onchange="updateCalc()"></div>
     <div class="item"><span>3T車 台数</span><input type="number" id="unit-3t" class="qty-input" value="0" onchange="updateCalc()"></div>
-    <div class="section-title">人員</div>
     <div class="item"><span>作業員数</span><input type="number" id="unit-staff" class="qty-input" value="0" onchange="updateCalc()"></div>
+    
+    <div class="section-title">フリー便（指定なし）用設定</div>
+    <div class="slider-container">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span>想定作業時間</span>
+            <span style="color:var(--blue); font-weight:bold;"><span id="time-display">2.0</span> 時間</span>
+        </div>
+        <input type="range" id="work-time" min="0.5" max="12" step="0.5" value="2.0" oninput="updateTimeDisp()">
+        <p style="font-size: 0.75rem; color: #666; margin: 0;">※車両5,500円/h、人員3,250円/hとして計算</p>
+    </div>
 </div>
 
 <div id="step4" class="page">
-    <div class="section-title">割引設定</div>
-    <div class="item"><span>基本20%割引</span><input type="checkbox" id="disc-20" onchange="updateCalc()"></div>
-    <div class="item"><span>特別値引き(円)</span><input type="number" id="disc-extra" placeholder="金額入力" onchange="updateCalc()"></div>
-    
-    <div class="section-title">最終見積（税込想定）</div>
-    <div class="result-card">
-        <div class="price-compare">
-            <div class="compare-box bg-weekday">
-                <small>平日料金</small><br><strong id="res-weekday" style="font-size:1.4rem;">0</strong>円
-            </div>
-            <div class="compare-box bg-holiday">
-                <small>休日料金</small><br><strong id="res-holiday" style="font-size:1.4rem;">0</strong>円
-            </div>
-        </div>
-    </div>
+    <div class="section-title">値引き設定</div>
+    <div class="item"><span>基本20%割引適用</span><input type="checkbox" id="disc-20" style="width:25px; height:25px;" onchange="updateCalc()"></div>
+    <div class="item"><span>特別値引き額(円)</span><input type="number" id="disc-extra" class="input-text" placeholder="金額" onchange="updateCalc()"></div>
+
+    <div class="section-title">見積比較（税込想定）</div>
+    <table class="compare-table">
+        <tr>
+            <th>プラン</th>
+            <th>平日料金</th>
+            <th>休日料金</th>
+        </tr>
+        <tr>
+            <th>時間指定<br>あり</th>
+            <td><span id="wd-fixed" class="price-val">0</span>円</td>
+            <td><span id="hd-fixed" class="price-val">0</span>円</td>
+        </tr>
+        <tr>
+            <th style="color:var(--green);">時間指定<br>なし</th>
+            <td><span id="wd-free" class="price-val highlight-green">0</span>円</td>
+            <td><span id="hd-free" class="price-val highlight-green">0</span>円</td>
+        </tr>
+    </table>
 </div>
 
 <div class="nav-footer">
     <button class="nav-btn btn-prev" onclick="movePage(-1)">戻る</button>
-    <span id="step-indicator" style="line-height:40px; font-weight:bold;">1 / 4</span>
+    <span id="step-indicator">1 / 4</span>
     <button class="nav-btn btn-next" onclick="movePage(1)">次へ</button>
 </div>
 
@@ -98,16 +123,17 @@ const dataItems = [
     {n:"ソファー 2人掛け", p:22}, {n:"冷蔵庫 5D", p:25}, {n:"洗濯機 ドラム", p:12}, {n:"タンス", p:18}, {n:"ダンボール", p:1}
 ];
 
-// 初期描画
 function init() {
     const container = document.getElementById('list-container');
     dataItems.forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'item';
         div.innerHTML = `<span>${item.n} (${item.p}P)</span>
-            <div class="ctrls"><button class="btn" onclick="chg(${idx},-1)">－</button>
-            <input type="number" id="q${idx}" class="qty-input" value="0" data-pts="${item.p}" onchange="updateCalc()">
-            <button class="btn" onclick="chg(${idx},1)">＋</button></div>`;
+            <div class="ctrls">
+                <button class="btn-qty" onclick="chg(${idx},-1)">－</button>
+                <input type="number" id="q${idx}" class="qty-input" value="0" onchange="updateCalc()">
+                <button class="btn-qty" onclick="chg(${idx},1)">＋</button>
+            </div>`;
         container.appendChild(div);
     });
 }
@@ -118,6 +144,11 @@ function chg(idx, d) {
     updateCalc();
 }
 
+function updateTimeDisp() {
+    document.getElementById('time-display').innerText = parseFloat(document.getElementById('work-time').value).toFixed(1);
+    updateCalc();
+}
+
 function movePage(d) {
     const next = currentPage + d;
     if(next < 1 || next > 4) return;
@@ -125,51 +156,55 @@ function movePage(d) {
     document.getElementById(`step${next}`).classList.add('active');
     currentPage = next;
     document.getElementById('step-indicator').innerText = `${currentPage} / 4`;
-    const titles = ["荷物リスト入力", "付帯サービス", "配車・人員計画", "最終確認"];
+    const titles = ["荷物リスト入力", "付帯サービス", "配車・人員計画", "最終見積比較"];
     document.getElementById('page-title').innerText = titles[currentPage-1];
     window.scrollTo(0,0);
 }
 
 function updateCalc() {
-    // 1. 車両・人員ベース
     const n2t = parseInt(document.getElementById('unit-2t').value) || 0;
     const n3t = parseInt(document.getElementById('unit-3t').value) || 0;
     const nStaff = parseInt(document.getElementById('unit-staff').value) || 0;
+    const hTime = parseFloat(document.getElementById('work-time').value) || 0;
 
-    // 基本単価
-    const baseWd = (n2t * 34500) + (n3t * 36500) + (nStaff * 20000);
-    const baseHd = (n2t * 44500) + (n3t * 46500) + (nStaff * 30000);
+    // A: 指定あり基本
+    const baseWdFixed = (n2t * 34500) + (n3t * 36500) + (nStaff * 20000);
+    const baseHdFixed = (n2t * 44500) + (n3t * 46500) + (nStaff * 30000);
 
-    // 2. 付帯工事
-    const acOff = (parseInt(document.getElementById('ac-off').value) || 0) * 5500;
-    const acOn = (parseInt(document.getElementById('ac-on').value) || 0) * 6500;
-    const yojo = parseInt(document.getElementById('fee-yojo').value) || 0;
-    const road = parseInt(document.getElementById('fee-road').value) || 0;
+    // B: 指定なし（フリー便）基本
+    // 算出式: 指定あり - ((車両5500 + 人員3250) * 作業時間)
+    const hourlyUnit = ((n2t + n3t) * 5500) + (nStaff * 3250);
+    const freeDiscount = hourlyUnit * hTime;
+    
+    const baseWdFree = baseWdFixed - freeDiscount;
+    const baseHdFree = baseHdFixed - freeDiscount;
 
-    // 3. 保険料判定
-    let ins = 0;
-    const insSel = document.getElementById('fee-ins').value;
-    if(insSel === "auto") {
-        if(n3t > 0) ins = 3000;
-        else if(n2t > 0) ins = 2000;
-    }
+    // 付帯・実費
+    const extra = (parseInt(document.getElementById('ac-off').value) || 0) * 5500 + 
+                  (parseInt(document.getElementById('ac-on').value) || 0) * 6500 + 
+                  (parseInt(document.getElementById('fee-yojo').value) || 0) + 
+                  (parseInt(document.getElementById('fee-road').value) || 0) + 
+                  (parseInt(document.getElementById('fee-ins').value) || 0);
 
-    const subTotalWd = baseWd + acOff + acOn + yojo + road + ins;
-    const subTotalHd = baseHd + acOff + acOn + yojo + road + ins;
+    let res = {
+        wf: baseWdFixed + extra,
+        hf: baseHdFixed + extra,
+        wfree: baseWdFree + extra,
+        hfree: baseHdFree + extra
+    };
 
-    // 4. 割引
-    let finalWd = subTotalWd;
-    let finalHd = subTotalHd;
-    if(document.getElementById('disc-20').checked) {
-        finalWd *= 0.8;
-        finalHd *= 0.8;
-    }
+    // 割引適用
+    const isDisc20 = document.getElementById('disc-20').checked;
     const extraDisc = parseInt(document.getElementById('disc-extra').value) || 0;
-    finalWd -= extraDisc;
-    finalHd -= extraDisc;
 
-    document.getElementById('res-weekday').innerText = Math.floor(finalWd).toLocaleString();
-    document.getElementById('res-holiday').innerText = Math.floor(finalHd).toLocaleString();
+    for (let key in res) {
+        if(isDisc20) res[key] *= 0.8;
+        res[key] -= extraDisc;
+        
+        // 表示更新 (idマッピング)
+        let targetId = key.replace('wf','wd-fixed').replace('hf','hd-fixed').replace('wfree','wd-free').replace('hfree','hd-free');
+        document.getElementById(targetId).innerText = Math.floor(res[key]).toLocaleString();
+    }
 }
 
 init();
