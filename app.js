@@ -1,32 +1,27 @@
-// app.js - 営業見積シミュレーター v4.0 完全版
+// app.js - 営業見積シミュレーター v4.0
 
 let counts = {};
 let currentPage = 1;
 
-// 1. 初期化：画面生成
 function init() {
     const list = document.getElementById('list-container');
     if (!list) return;
 
-    // 家財リスト生成（2段アコーディオン）
+    // 家財リスト生成
     for (let catName in moveData) {
         const catTitle = document.createElement('div');
         catTitle.className = 'cat-title';
         catTitle.innerHTML = `<span>${catName}</span><span>▼</span>`;
-        
         const catContent = document.createElement('div');
         catContent.className = 'cat-content';
-        
         catTitle.onclick = () => catContent.classList.toggle('active');
 
         moveData[catName].forEach(group => {
             const gDiv = document.createElement('div');
             gDiv.className = 'group-item';
-            
             const gHeader = document.createElement('div');
             gHeader.className = 'group-header';
             gHeader.innerHTML = `<span>${group.g}</span><span id="gsum-${group.g}" style="color:var(--blue); font-size:0.75rem;">0 P</span>`;
-            
             const gContent = document.createElement('div');
             gContent.className = 'group-content';
             
@@ -53,15 +48,12 @@ function init() {
                     </div>`;
                 gContent.appendChild(row);
             });
-            gDiv.appendChild(gHeader);
-            gDiv.appendChild(gContent);
-            catContent.appendChild(gDiv);
+            gDiv.appendChild(gHeader); gDiv.appendChild(gContent); catContent.appendChild(gDiv);
         });
-        list.appendChild(catTitle);
-        list.appendChild(catContent);
+        list.appendChild(catTitle); list.appendChild(catContent);
     }
 
-    // 付帯工事リスト生成（全項目表示）
+    // 付帯工事リスト生成
     const fArea = document.getElementById('futa-inputs');
     if (fArea) {
         futai.forEach(f => {
@@ -83,7 +75,6 @@ function init() {
     updateCalc();
 }
 
-// 2. 数量変更とポイント集計
 function chg(id, d, p, gName) {
     counts[id] = Math.max(0, (counts[id] || 0) + d);
     const input = document.getElementById('q-' + id);
@@ -99,13 +90,11 @@ function chg(id, d, p, gName) {
             grand += gSum;
         });
     }
-    // 合計ポイントの更新
     document.getElementById('total-pts-1').innerText = grand;
     document.getElementById('total-pts-3').innerText = grand;
     updateCalc();
 }
 
-// 3. 画面遷移
 function movePage(d) {
     const next = currentPage + d; 
     if (next < 1 || next > 4) return;
@@ -118,7 +107,6 @@ function movePage(d) {
     window.scrollTo(0, 0);
 }
 
-// 4. 計算メインロジック
 function updateCalc() {
     const isB = document.getElementById('is-busy')?.checked;
     const rate = isB ? master.busy_r : 1.0;
@@ -127,7 +115,6 @@ function updateCalc() {
     const nS = parseInt(document.getElementById('unit-staff')?.value) || 0;
     const h = parseFloat(document.getElementById('work-time')?.value) || 0;
 
-    // 付帯工事費の計算（項目の下に料金表示）
     let extraTotal = 0;
     futai.forEach(f => {
         const q = parseInt(document.getElementById(f.id)?.value) || 0;
@@ -144,31 +131,20 @@ function updateCalc() {
         extraTotal += sub;
     });
     
-    // 実費・経費の加算
     extraTotal += (parseInt(document.getElementById('fee-yojo')?.value) || 0);
     extraTotal += (parseInt(document.getElementById('fee-road')?.value) || 0);
     extraTotal += (parseInt(document.getElementById('fee-ins')?.value) || 0);
 
-    // 基本運賃（平日・休日）
     let wdBase = ((n2 * master.wd2t) + (n3 * master.wd3t) + (nS * master.wdSt)) * rate;
     let hdBase = ((n2 * master.hd2t) + (n3 * master.hd3t) + (nS * master.hdSt)) * rate;
-    
-    // フリー便割引額
     const freeDiscount = ((n2 + n3) * master.f_car + nS * master.f_man) * h;
-    
-    // 割引・値引き（時間指定のみ）
     const pctDisc = document.getElementById('disc-20')?.checked ? 0.8 : 1.0;
     const manualDisc = parseInt(document.getElementById('disc-extra')?.value) || 0;
 
-    // 結果の反映
-    // 時間指定：(基本運賃 * 20%割引) - 特別値引き + 付帯/実費
     document.getElementById('wd-fixed').innerText = Math.floor(wdBase * pctDisc - manualDisc + extraTotal).toLocaleString();
     document.getElementById('hd-fixed').innerText = Math.floor(hdBase * pctDisc - manualDisc + extraTotal).toLocaleString();
-    
-    // フリー便：基本運賃 - フリー便割引 + 付帯/実費
     document.getElementById('wd-free').innerText = Math.floor(wdBase - freeDiscount + extraTotal).toLocaleString();
     document.getElementById('hd-free').innerText = Math.floor(hdBase - freeDiscount + extraTotal).toLocaleString();
 }
 
-// 起動
 init();
