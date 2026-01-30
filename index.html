@@ -8,16 +8,21 @@
         :root { --blue: #00479d; --red: #e60012; --bg: #f4f7f9; --gray: #444; --green: #28a745; --orange: #f39c12; }
         body { font-family: -apple-system, "Helvetica Neue", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; background: var(--bg); margin: 0; padding-bottom: 120px; color: #333; line-height: 1.4; }
         
+        /* ヘッダー */
         .header { background: var(--blue); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--red); display: flex; justify-content: space-between; align-items: center; }
         .header h1 { margin: 0; font-size: 1.1rem; flex: 1; }
+        .admin-link { text-decoration: none; color: white; font-size: 1.5rem; line-height: 1; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; }
 
+        /* 共通レイアウト */
         .page { display: none; padding: 10px; animation: fadeIn 0.1s; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* ポイント表示バナー */
         .pts-banner { background: var(--blue); color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 10px; position: sticky; top: 60px; z-index: 99; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .pts-banner span { font-size: 1.5rem; }
 
+        /* アコーディオン設定 */
         .cat-title { background: var(--gray); color: white; padding: 12px; margin-top: 10px; border-radius: 4px; font-size: 0.9rem; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; }
         .cat-content { display: none; }
         .cat-content.active { display: block; }
@@ -30,26 +35,31 @@
         .group-content { display: none; background: #fafafa; border-top: 1px solid #eee; }
         .group-content.active { display: block; }
 
+        /* 行スタイル */
         .var-row { padding: 10px 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .var-info { flex: 1; }
         .var-name { font-size: 0.85rem; font-weight: bold; display: block; }
         .var-size { font-size: 0.65rem; color: #666; font-family: monospace; }
         
+        /* 操作パーツ（スピンボタン） */
         .ctrls { display: flex; align-items: center; gap: 5px; }
-        .qty-input { width: 65px; height: 38px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; font-size: 1.1rem; -webkit-appearance: none; }
-        .btn-qty { width: 40px; height: 40px; background: white; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+        .qty-input { width: 70px; height: 40px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; font-size: 1.1rem; }
+        .btn-qty { width: 42px; height: 42px; background: white; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; }
         .btn-qty:active { background: #eee; }
         .unit-label { font-size: 0.8rem; min-width: 25px; color: #666; margin-left: 2px; }
 
-        .item-calc-price { font-size: 0.85rem; color: var(--red); font-weight: bold; text-align: right; width: 100%; display: none; margin-top: 5px; }
+        /* 個別料金表示（赤字） */
+        .item-calc-price { font-size: 0.9rem; color: var(--red); font-weight: bold; text-align: right; width: 100%; display: none; margin-top: 5px; }
 
+        /* 最終比較テーブル */
         .compare-table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .compare-table th { background: #eee; padding: 10px; font-size: 0.8rem; border: 1px solid #ddd; }
         .compare-table td { border: 1px solid #ddd; padding: 15px 5px; text-align: center; width: 35%; }
         .compare-table td:first-child { background: #f9f9f9; width: 30%; font-weight: bold; font-size: 0.8rem; }
         .price-val { font-size: 1.2rem; font-weight: bold; color: var(--red); }
-        .price-val::after { content: " 円"; font-size: 0.7rem; }
+        .price-val::after { content: " 円"; font-size: 0.75rem; }
 
+        /* 下部ナビゲーション */
         .nav-footer { position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid #ddd; padding: 12px; display: flex; justify-content: space-between; box-sizing: border-box; align-items: center; z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
         .nav-btn { padding: 12px 25px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; min-width: 100px; }
         .btn-prev { background: #eee; color: #333; }
@@ -61,7 +71,9 @@
 <div class="header">
     <div style="width:40px"></div>
     <h1 id="page-title">家財リスト</h1>
-    <div style="width:40px"></div>
+    <div style="width:40px; display: flex; align-items: center; justify-content: center;">
+        <a href="admin/admin.html" class="admin-link" title="管理設定">⚙️</a>
+    </div>
 </div>
 
 <div id="step1" class="page active">
@@ -70,7 +82,7 @@
 </div>
 
 <div id="step2" class="page">
-    <div class="cat-title" style="cursor:default">付帯サービス（項目別料金表示）</div>
+    <div class="cat-title" style="cursor:default">付帯サービス（項目別料金）</div>
     <div id="futa-inputs" style="background:white;"></div>
     
     <div class="cat-title" style="cursor:default">実費・経費</div>
@@ -114,7 +126,7 @@
     <div class="cat-title" style="cursor:default">割引調整 (時間指定に適用)</div>
     <div style="background:white;">
         <div class="var-row"><span>基本20%割引</span><input type="checkbox" id="disc-20" onchange="updateCalc()" style="width:22px; height:22px"></div>
-        <div class="var-row"><span>特別値引き</span><div class="ctrls"><input type="number" id="disc-extra" class="qty-input" style="width:110px" value="0" onchange="updateCalc()"><span class="unit-label">円</span></div></div>
+        <div class="var-row"><span>特別値引き</span><div class="ctrls"><input type="number" id="disc-extra" class="qty-input" style="width:120px" value="0" onchange="updateCalc()"><span class="unit-label">円</span></div></div>
     </div>
 </div>
 
