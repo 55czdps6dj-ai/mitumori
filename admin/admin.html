@@ -2,42 +2,51 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>【管理】単価設定 - 営業見積プロ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【管理者専用】設定変更 - 営業見積プロ</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; line-height: 1.6; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { border-bottom: 2px solid #00479d; padding-bottom: 10px; color: #00479d; }
-        h2 { font-size: 1.1rem; margin-top: 25px; color: #444; background: #eee; padding: 5px 10px; border-radius: 4px; }
-        .input-group { display: grid; grid-template-columns: 200px 1fr 50px; gap: 10px; margin-bottom: 8px; align-items: center; }
-        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
-        .save-area { margin-top: 30px; padding: 20px; background: #fff4e5; border-radius: 8px; text-align: center; }
-        .btn-save { background: #28a745; color: white; padding: 15px 30px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
+        :root { --blue: #00479d; --gray: #f4f7f9; }
+        body { font-family: sans-serif; background: var(--gray); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: var(--blue); border-bottom: 3px solid var(--blue); padding-bottom: 10px; font-size: 1.4rem; }
+        h2 { background: #eee; padding: 10px; font-size: 1rem; border-radius: 4px; margin-top: 30px; }
+        
+        .input-group { display: grid; grid-template-columns: 220px 1fr 60px; gap: 10px; margin-bottom: 10px; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        label { font-size: 0.9rem; font-weight: bold; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+        
+        .save-banner { position: sticky; bottom: 0; background: #fff4e5; border: 2px solid #f39c12; padding: 20px; border-radius: 8px; text-align: center; margin-top: 40px; box-shadow: 0 -5px 10px rgba(0,0,0,0.05); }
+        .btn-save { background: #28a745; color: white; padding: 15px 40px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.2rem; }
         .btn-save:hover { background: #218838; }
-        .back-link { display: inline-block; margin-bottom: 20px; color: #00479d; text-decoration: none; }
+        
+        .nav-back { margin-bottom: 15px; display: inline-block; color: var(--blue); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <a href="index.html" class="back-link">← 見積画面へ戻る</a>
-        <h1>システム設定管理 (config.js)</h1>
-        
-        <div id="master-settings">
-            <h2>車両・作業員 基本単価 (平日/休日)</h2>
-            <div id="master-inputs"></div>
-        </div>
 
-        <div id="futai-settings">
-            <h2>付帯サービス・工事料金</h2>
-            <div id="futai-inputs"></div>
-        </div>
+<div class="container">
+    <a href="../index.html" class="nav-back">← 営業画面（見積）へ戻る</a>
+    <h1>システム設定管理</h1>
+    <p style="font-size: 0.8rem; color: #666;">単価を書き換えて、一番下のボタンで「config.js」を保存してください。</p>
 
-        <div class="save-area">
-            <p style="font-size: 0.9rem; color: #666;">※[保存して更新] を押すと、新しい <b>config.js</b> がダウンロードされます。<br>現在のファイルをこの新しいファイルで上書きしてください。</p>
-            <button class="btn-save" onclick="generateConfigJS()">新しい config.js を保存して更新</button>
-        </div>
+    <div id="master-section">
+        <h2>車両・作業員 基本単価</h2>
+        <div id="master-inputs"></div>
     </div>
 
-    <script src="config.js"></script>
-    <script src="admin.js"></script>
+    <div id="futai-section">
+        <h2>付帯サービス・工事料金（全項目）</h2>
+        <div id="futai-inputs"></div>
+    </div>
+
+    <div class="save-banner">
+        <button class="btn-save" onclick="exportConfig()">新しい config.js を出力する</button>
+        <p style="font-size: 0.75rem; margin-top: 10px;">※ダウンロードしたファイルを元のフォルダの config.js と入れ替えてください。</p>
+    </div>
+</div>
+
+<script src="../config.js"></script>
+<script src="admin.js"></script>
+
 </body>
 </html>
