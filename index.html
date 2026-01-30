@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>営業見積シミュレーター v2.6</title>
+    <title>営業見積シミュレーター v2.7</title>
     <style>
         :root { --blue: #00479d; --red: #e60012; --bg: #f8f9fa; --gray: #444; --green: #28a745; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 120px; }
         .header { background: var(--blue); color: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--red); position: sticky; top: 0; z-index: 1000; }
         .header h1 { margin: 0; font-size: 1.1rem; }
+        .pts-display { background: #fff3cd; color: #856404; padding: 8px; text-align: center; font-weight: bold; border-bottom: 1px solid #ffeeba; }
         .page { display: none; padding: 15px; }
         .page.active { display: block; }
         .section-title { background: var(--gray); color: white; padding: 10px 15px; font-weight: bold; margin-top: 15px; border-radius: 4px; font-size: 0.9rem; }
@@ -29,6 +30,7 @@
 <body>
 
 <div class="header"><h1 id="page-title">荷物リスト入力</h1></div>
+<div class="pts-display">現在の合計荷物量: <span id="total-pts-display">0</span> P</div>
 
 <div id="step1" class="page active"><div id="list-container"></div></div>
 
@@ -43,7 +45,7 @@
 </div>
 
 <div id="step3" class="page">
-    <div class="section-title">配車確定</div>
+    <div class="section-title">配車確定 (目安: 2T=200P / 3T=360P)</div>
     <div class="item"><span>2T車 台数</span><input type="number" id="unit-2t" class="qty-input" value="0" oninput="updateCalc()"></div>
     <div class="item"><span>3T車 台数</span><input type="number" id="unit-3t" class="qty-input" value="0" oninput="updateCalc()"></div>
     <div class="item"><span>作業員数</span><input type="number" id="unit-staff" class="qty-input" value="0" oninput="updateCalc()"></div>
@@ -52,7 +54,6 @@
         <span>想定作業時間 (h)</span>
         <input type="number" id="work-time" class="qty-input" value="2.0" step="0.5" oninput="updateCalc()">
     </div>
-    <p style="padding:10px; font-size:0.8rem; color:#666;">※時間指定なしの場合、(車両5500+人3250)×時間が割引かれます。</p>
 </div>
 
 <div id="step4" class="page">
@@ -76,23 +77,29 @@
 
 <script>
 let currentPage = 1;
-const dataItems = [{n:"ソファー 2人掛け",p:22},{n:"冷蔵庫 5D",p:25},{n:"洗濯機 ドラム",p:12},{n:"タンス",p:18},{n:"ダンボール",p:1}];
+const dataItems = [
+    {n:"ソファー 2人掛け",p:22},{n:"ソファー 3人掛け",p:50},{n:"冷蔵庫 5D",p:25},
+    {n:"洗濯機 ドラム",p:12},{n:"タンス",p:18},{n:"シングルベッド",p:9},
+    {n:"ダンボール",p:1},{n:"自転車",p:15}
+];
 
 function init() {
     const container = document.getElementById('list-container');
     dataItems.forEach((item, i) => {
         const div = document.createElement('div');
         div.className = 'item';
-        div.innerHTML = `<span>${item.n}</span><div style="display:flex;gap:10px"><button style="width:40px;height:40px" onclick="chg(${i},-1)">－</button><input type="number" id="q${i}" class="qty-input" value="0" oninput="updateCalc()"><button style="width:40px;height:40px" onclick="chg(${i},1)">＋</button></div>`;
+        div.innerHTML = `<span>${item.n} (${item.p}P)</span><div style="display:flex;gap:10px"><button style="width:40px;height:40px" onclick="chg(${i},-1)">－</button><input type="number" id="q${i}" class="qty-input" value="0" data-pts="${item.p}" oninput="updateCalc()"><button style="width:40px;height:40px" onclick="chg(${i},1)">＋</button></div>`;
         container.appendChild(div);
     });
     updateCalc();
 }
+
 function chg(i, d) { 
     const el = document.getElementById('q'+i); 
     el.value = Math.max(0, (parseInt(el.value)||0)+d); 
     updateCalc(); 
 }
+
 function movePage(d) {
     const next = currentPage + d;
     if(next < 1 || next > 4) return;
@@ -104,20 +111,23 @@ function movePage(d) {
 }
 
 function updateCalc() {
+    // 荷物ポイントの合計計算
+    let totalPts = 0;
+    dataItems.forEach((item, i) => {
+        const qty = parseInt(document.getElementById('q' + i).value) || 0;
+        totalPts += qty * item.p;
+    });
+    document.getElementById('total-pts-display').innerText = totalPts.toLocaleString();
+
     const n2t = parseInt(document.getElementById('unit-2t').value) || 0;
     const n3t = parseInt(document.getElementById('unit-3t').value) || 0;
     const nStaff = parseInt(document.getElementById('unit-staff').value) || 0;
     const hTime = parseFloat(document.getElementById('work-time').value) || 0;
 
-    // A: 指定あり基本
     const baseWdFixed = (n2t * 34500) + (n3t * 36500) + (nStaff * 20000);
     const baseHdFixed = (n2t * 44500) + (n3t * 46500) + (nStaff * 30000);
+    const freeDiscount = (((n2t + n3t) * 5500) + (nStaff * 3250)) * hTime;
 
-    // B: 指定なし割引額
-    const hourlyUnit = ((n2t + n3t) * 5500) + (nStaff * 3250);
-    const freeDiscount = hourlyUnit * hTime;
-
-    // 付帯
     const extra = (parseInt(document.getElementById('ac-off').value)||0)*5500 + (parseInt(document.getElementById('ac-on').value)||0)*6500 + (parseInt(document.getElementById('fee-yojo').value)||0) + (parseInt(document.getElementById('fee-road').value)||0) + (parseInt(document.getElementById('fee-ins').value)||0);
 
     let vals = {
