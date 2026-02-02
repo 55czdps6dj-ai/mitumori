@@ -1,58 +1,70 @@
-// app.js - 京王運輸 専用 Ver 5.3
+// app.js - 京王運輸 専用 Ver 6.0
 let counts = {};
 let currentPage = 1;
 
 function init() {
     const list = document.getElementById('list-container');
-    for (let cat in moveData) {
-        let title = document.createElement('div');
-        title.className = 'cat-title'; title.innerText = cat;
-        list.appendChild(title);
+    moveDataFlat.forEach(item => {
+        list.appendChild(createRow(item.n, item.p));
+    });
 
-        moveData[cat].forEach(group => {
-            if (group.accordion) {
-                let btn = document.createElement('div');
-                btn.className = 'acc-btn';
-                btn.innerHTML = `<span>${group.g} (No.${group.accordion})</span> <span class="arrow">▶</span>`;
-                
-                let cont = document.createElement('div');
-                cont.className = 'acc-content';
-
-                group.v.forEach(v => {
-                    let id = group.g + v.n;
-                    cont.appendChild(createRow(v.n, v.p, id));
-                });
-
-                btn.onclick = () => {
-                    cont.classList.toggle('open');
-                    btn.querySelector('.arrow').classList.toggle('open');
-                };
-                list.appendChild(btn); list.appendChild(cont);
-            } else {
-                group.v.forEach(v => {
-                    let id = group.g + v.n;
-                    list.appendChild(createRow(v.n, v.p, id));
-                });
-            }
-        });
-    }
     renderFuta();
     renderUnits();
+    setupSearch();
     updateCalc();
 }
 
-function createRow(name, pts, id) {
+function createRow(name, pts) {
     let row = document.createElement('div');
     row.className = 'var-row';
-    row.innerHTML = `<span>${name} (${pts}P)</span>
+    row.dataset.name = name;
+    row.innerHTML = `<span>${name} <small>(${pts}P)</small></span>
         <div class="ctrls">
-            <button class="btn-qty" onclick="chg('${id}',-1,${pts})">－</button>
-            <input type="number" id="q-${id}" class="qty-input" value="${counts[id]||0}" readonly>
-            <button class="btn-qty" onclick="chg('${id}',1,${pts})">＋</button>
+            <button class="btn-qty" onclick="chg('${name}',-1,${pts})">－</button>
+            <input type="number" id="q-${name}" class="qty-input" value="0" readonly>
+            <button class="btn-qty" onclick="chg('${name}',1,${pts})">＋</button>
         </div>`;
     return row;
 }
 
+function setupSearch() {
+    document.getElementById('item-search').addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        document.querySelectorAll('.var-row').forEach(row => {
+            const name = row.dataset.name.toLowerCase();
+            row.style.display = name.includes(val) ? 'flex' : 'none';
+        });
+    });
+}
+
+function chg(name, d, p) {
+    counts[name] = Math.max(0, (counts[name] || 0) + d);
+    document.getElementById('q-' + name).value = counts[name];
+    
+    let total = 0;
+    const summaryList = document.getElementById('selected-items-list');
+    summaryList.innerHTML = '';
+    
+    for (let key in counts) {
+        if (counts[key] > 0) {
+            const item = moveDataFlat.find(i => i.n === key);
+            total += counts[key] * item.p;
+            
+            // バッジの作成
+            let badge = document.createElement('span');
+            badge.className = 'badge';
+            badge.innerText = `${key.split('.')[0]}.${key.split('.')[1]} × ${counts[key]}`;
+            summaryList.appendChild(badge);
+        }
+    }
+    
+    document.getElementById('selected-summary').style.display = total > 0 ? 'block' : 'none';
+    document.getElementById('total-pts-1').innerText = total;
+    document.getElementById('total-pts-2').innerText = total;
+    updateCalc();
+}
+
+// 付帯・配車・計算ロジック（以下共通）
 function renderFuta() {
     const fArea = document.getElementById('futa-inputs');
     futai.forEach(f => {
@@ -82,23 +94,6 @@ function renderUnits() {
             </div>`;
         uArea.appendChild(d);
     });
-}
-
-function chg(id, d, p) {
-    counts[id] = Math.max(0, (counts[id] || 0) + d);
-    document.getElementById('q-' + id).value = counts[id];
-    let total = 0;
-    for (let k in counts) {
-        for (let cat in moveData) {
-            moveData[cat].forEach(g => {
-                g.v.forEach(v => { if (g.g + v.n === k) total += counts[k] * v.p; });
-            });
-        }
-    }
-    document.getElementById('total-pts-1').innerText = total;
-    document.getElementById('total-pts-2').innerText = total;
-    document.getElementById('total-pts-3').innerText = total;
-    updateCalc();
 }
 
 function spin(id, d, min, max) {
@@ -152,15 +147,8 @@ function movePage(d) {
     document.getElementById(`step${next}`).classList.add('active');
     currentPage = next;
     document.getElementById('step-indicator').innerText = currentPage + " / 4";
-    document.getElementById('page-title').innerText = ["家財リスト","付帯・実費","配車設定","最終比較"][currentPage-1];
+    document.getElementById('page-title').innerText = ["家財入力","付帯・実費","配車設定","結果比較"][currentPage-1];
     window.scrollTo(0,0);
-}
-
-function saveLog(s) {
-    let logs = JSON.parse(localStorage.getItem('moving_logs') || '[]');
-    logs.push({ date: new Date().toLocaleString(), status: s, pts: document.getElementById('total-pts-1').innerText, price: document.getElementById('wd-fixed').innerText });
-    localStorage.setItem('moving_logs', JSON.stringify(logs));
-    alert(s + "として記録しました。");
 }
 
 window.onload = init;
