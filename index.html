@@ -1,61 +1,55 @@
-<div id="step-2" class="step-page">
-    <header class="header-v7"><h1>2. プラン比較・割引</h1></header>
+function updateUI() {
+    // 1. 家財ポイント集計
+    let pts = 0;
+    Object.keys(counts).forEach(n => pts += counts[n] * (itemMaster[n] || 0));
+    freeItems.forEach(i => pts += i.p * i.q);
+    document.getElementById('total-points').textContent = pts;
+
+    // 2. 係数と単価
+    const pricePerPt = parseInt(document.getElementById('price-per-pt').value) || 0;
+    const dayFactor = parseInt(document.getElementById('day-factor').value) / 100;
+    const basePrice = 30000; // 基礎運賃（固定）
+
+    // 3. 付帯サービス集計
+    let optTotal = 0;
+    document.querySelectorAll('.opt-check:checked').forEach(el => {
+        optTotal += parseInt(el.closest('.opt-row').querySelector('.opt-price').value) || 0;
+    });
+    document.querySelectorAll('.custom-opt-check:checked').forEach(el => {
+        optTotal += parseInt(el.closest('.opt-row').querySelector('.custom-opt-price').value) || 0;
+    });
+
+    // 4. 計算（現在条件）
+    let currentMovingPrice = (basePrice + (pts * pricePerPt)) * dayFactor;
+    let discountVal = parseInt(document.getElementById('special-discount').value) || 0;
+    let discountRate = (100 - (parseInt(document.getElementById('discount-rate').value) || 0)) / 100;
     
-    <section class="v7-section">
-        <h3>■ プラン・日程条件</h3>
-        <div class="v7-grid">
-            <div class="v7-input">
-                <label>基本単価/pt</label>
-                <input type="number" id="price-per-pt" value="200" oninput="updateUI()">
-            </div>
-            <div class="v7-input">
-                <label>日程係数 (%)</label>
-                <select id="day-factor" onchange="updateUI()">
-                    <option value="100">平日 (100%)</option>
-                    <option value="120">土日祝 (+20%)</option>
-                    <option value="150">繁忙期 (+50%)</option>
-                    <option value="80">フリー便 (-20%)</option>
-                </select>
-            </div>
-        </div>
-    </section>
+    let final = Math.floor((currentMovingPrice + optTotal - discountVal) * discountRate);
 
-    <section class="v7-section">
-        <h3>■ 付帯サービス & カスタム項目</h3>
-        <div id="option-list"></div>
-        <div class="free-opt-input">
-            <input type="text" id="new-opt-name" placeholder="追加項目名">
-            <input type="number" id="new-opt-price" placeholder="金額">
-            <button onclick="addCustomOption()">追加</button>
-        </div>
-        <div id="custom-option-list"></div>
-    </section>
+    // 5. 比較用計算（平日基準：係数1.0, 割引なし）
+    let stdFinal = (basePrice + (pts * pricePerPt)) + optTotal;
 
-    <section class="v7-section">
-        <h3>■ 値引き・調整</h3>
-        <div class="v7-grid">
-            <div class="v7-input">
-                <label>特別割引 (¥)</label>
-                <input type="number" id="special-discount" value="0" oninput="updateUI()" style="color:red;">
-            </div>
-            <div class="v7-input">
-                <label>割引率 (%)</label>
-                <input type="number" id="discount-rate" value="0" oninput="updateUI()" style="color:red;">
-            </div>
-        </div>
-    </section>
+    // 6. 表示反映
+    document.getElementById('row-base').textContent = "¥" + Math.floor(currentMovingPrice).toLocaleString();
+    document.getElementById('row-base-std').textContent = "¥" + Math.floor(basePrice + (pts * pricePerPt)).toLocaleString();
+    document.getElementById('row-opt').textContent = "¥" + optTotal.toLocaleString();
+    document.getElementById('row-opt-std').textContent = "¥" + optTotal.toLocaleString();
+    
+    document.getElementById('final-price').textContent = "¥ " + final.toLocaleString();
+    document.getElementById('std-price').textContent = "¥ " + stdFinal.toLocaleString();
 
-    <section class="v7-section highlight">
-        <h3>■ 見積金額比較</h3>
-        <table class="compare-table">
-            <tr><th>項目</th><th>現在条件</th><th>平日目安</th></tr>
-            <tr><td>基本運賃</td><td id="row-base">-</td><td id="row-base-std">-</td></tr>
-            <tr><td>付帯合計</td><td id="row-opt">-</td><td id="row-opt-std">-</td></tr>
-            <tr class="total-row"><td>合計額</td><td id="final-price" class="main-price">¥ 0</td><td id="std-price">¥ 0</td></tr>
-        </table>
-        <div class="price-diff-note" id="price-diff-msg"></div>
-    </section>
+    // 差額メッセージ
+    let diff = stdFinal - final;
+    const msgEl = document.getElementById('price-diff-msg');
+    if (diff > 0) {
+        msgEl.innerHTML = `<span style="color:green;">平日基準より <strong>¥${diff.toLocaleString()}</strong> お得です！</span>`;
+    } else if (diff < 0) {
+        msgEl.innerHTML = `<span style="color:red;">繁忙条件により <strong>¥${Math.abs(diff).toLocaleString()}</strong> 加算されています</span>`;
+    } else {
+        msgEl.textContent = "";
+    }
 
-    <button class="v7-btn copy" onclick="copyResult()">見積内容をコピー</button>
-    <button class="v7-btn reset" onclick="resetData()">全消去</button>
-</div>
+    // 車両サジェスト
+    let truck = pts <= 200 ? "2tショート" : (pts <= 300 ? "2tロング" : "3t車");
+    document.getElementById('auto-truck').textContent = truck;
+}
