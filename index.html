@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>引越見積 Ver13.0 Ultimate</title>
+    <title>引越見積 Pro Ver13.5</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
         <div id="step-1" class="step-page active">
             <header class="header-v7">
                 <div class="top-info">
-                    <span class="badge">1. 家財リスト入力</span>
+                    <span class="badge">1. 家財リスト</span>
                     <div class="total-pts"><span id="total-points">0</span><small>pt</small></div>
                 </div>
                 <div class="search-v7">
@@ -19,10 +19,8 @@
                     <button id="clear-search">×</button>
                 </div>
             </header>
-            
             <div id="search-results"></div>
             <div id="accordion-container"></div>
-            
             <div class="free-item-area">
                 <h3>＋ リスト外の家財</h3>
                 <div class="flex-row">
@@ -35,15 +33,39 @@
         </div>
 
         <div id="step-2" class="step-page">
-            <header class="header-v7"><h1>2. 条件・プラン比較</h1></header>
+            <header class="header-v7"><h1>2. 運行体制・比較</h1></header>
             
             <section class="v7-section">
-                <h3>■ 日程・単価設定</h3>
+                <h3>■ 運行・体制設定</h3>
                 <div class="v7-grid">
                     <div class="v7-input">
-                        <label>基本単価/pt</label>
-                        <input type="number" id="price-per-pt" value="200" oninput="updateUI()">
+                        <label>車両サイズ</label>
+                        <select id="truck-type" onchange="updateUI()">
+                            <option value="2tショート">2tショート</option>
+                            <option value="2tロング">2tロング</option>
+                            <option value="3t車">3t車</option>
+                            <option value="4t車">4t車</option>
+                        </select>
                     </div>
+                    <div class="v7-input">
+                        <label>車両台数</label>
+                        <input type="number" id="truck-count" value="1" min="1" oninput="updateUI()">
+                    </div>
+                    <div class="v7-input">
+                        <label>作業員数</label>
+                        <input type="number" id="staff-count" value="2" min="1" oninput="updateUI()">
+                    </div>
+                    <div class="v7-input">
+                        <label>人件費単価/人</label>
+                        <input type="number" id="staff-unit-price" value="15000" oninput="updateUI()">
+                    </div>
+                </div>
+                <div id="truck-suggest" class="suggest-badge">推奨: 2tショート</div>
+            </section>
+
+            <section class="v7-section">
+                <h3>■ 日程・単価・付帯</h3>
+                <div class="v7-grid">
                     <div class="v7-input">
                         <label>日程条件</label>
                         <select id="day-factor" onchange="updateUI()">
@@ -53,14 +75,14 @@
                             <option value="80">フリー便 (-20%)</option>
                         </select>
                     </div>
+                    <div class="v7-input">
+                        <label>家財pt単価</label>
+                        <input type="number" id="price-per-pt" value="200" oninput="updateUI()">
+                    </div>
                 </div>
-            </section>
-
-            <section class="v7-section">
-                <h3>■ 付帯サービス & カスタム項目</h3>
                 <div id="option-list"></div>
                 <div class="free-opt-input">
-                    <input type="text" id="new-opt-name" placeholder="追加項目 (例: 吊り作業)">
+                    <input type="text" id="new-opt-name" placeholder="追加項目名">
                     <input type="number" id="new-opt-price" placeholder="金額">
                     <button onclick="addCustomOption()">追加</button>
                 </div>
@@ -98,10 +120,7 @@
 
         <nav class="v7-nav">
             <button onclick="moveStep(-1)" id="prev-btn">戻る</button>
-            <div id="step-dots">
-                <span class="dot active"></span>
-                <span class="dot"></span>
-            </div>
+            <div id="step-dots"><span class="dot active"></span><span class="dot"></span></div>
             <button onclick="moveStep(1)" id="next-btn" class="next">次へ（見積確定）</button>
         </nav>
     </div>
