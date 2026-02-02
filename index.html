@@ -3,25 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>京王運輸 見積システム v5.2</title>
+    <title>京王運輸 見積システム Ver 5.3</title>
     <style>
         :root { --blue: #00479d; --red: #e60012; --bg: #f4f7f9; --gray: #444; --green: #28a745; --orange: #f39c12; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding-bottom: 120px; }
-        .header { background: var(--blue); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--red); }
+        .header { background: var(--blue); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--red); display: flex; justify-content: space-between; }
         .page { display: none; padding: 10px; }
         .page.active { display: block; }
         .pts-banner { background: var(--blue); color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 10px; position: sticky; top: 60px; z-index: 99; }
         .cat-title { background: var(--gray); color: white; padding: 12px; margin-top: 10px; border-radius: 4px; font-size: 0.9rem; font-weight: bold; }
-        .var-row { background: white; padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .ctrls { display: flex; align-items: center; gap: 5px; }
-        .qty-input { width: 50px; height: 40px; text-align: center; border: 1px solid #ccc; font-size: 1.1rem; font-weight: bold; background: #fff; }
-        .btn-qty { width: 45px; height: 45px; background: #eee; border: 1px solid #ccc; font-weight: bold; font-size: 1.2rem; cursor: pointer; }
-        .price-display { font-size: 0.8rem; color: var(--blue); font-weight: bold; margin-top: 5px; text-align: right; width: 100%; }
-        .compare-table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; border: 2px solid var(--blue); }
+        
+        /* アコーディオン設定 */
+        .acc-btn { width: 100%; padding: 15px; background: #fff; border: 1px solid #ddd; border-bottom: none; text-align: left; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .acc-content { display: none; background: #f0f4f8; border: 1px solid #ddd; border-top: none; }
+        .acc-content.open { display: block; }
+        .arrow { transition: 0.3s; color: var(--blue); }
+        .arrow.open { transform: rotate(90deg); }
+
+        .var-row { background: white; padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .ctrls { display: flex; align-items: center; gap: 8px; }
+        .qty-input { width: 50px; height: 40px; text-align: center; border: 1px solid #ccc; font-size: 1.1rem; font-weight: bold; }
+        .btn-qty { width: 45px; height: 45px; background: #eee; border: 1px solid #ccc; font-weight: bold; font-size: 1.4rem; cursor: pointer; border-radius: 4px; }
+        .price-display { font-size: 0.85rem; color: var(--blue); font-weight: bold; margin-top: 4px; text-align: right; width: 100%; }
+        
+        .compare-table { width: 100%; border-collapse: collapse; background: white; margin-top: 15px; border: 2px solid var(--blue); }
         .compare-table th, .compare-table td { border: 1px solid #ddd; padding: 12px; text-align: center; }
         .price-val { font-size: 1.2rem; font-weight: bold; color: var(--red); }
-        .nav-footer { position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid #ddd; padding: 10px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
-        .nav-btn { padding: 12px 25px; border-radius: 5px; border: none; font-weight: bold; font-size: 1rem; }
+        
+        .nav-footer { position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid #ddd; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+        .nav-btn { padding: 12px 25px; border-radius: 6px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -33,25 +43,22 @@
 </div>
 
 <div id="step1" class="page active">
-    <div class="pts-banner">合計: <span id="total-pts-1">0</span> P</div>
+    <div class="pts-banner">家財合計: <span id="total-pts-1">0</span> P</div>
     <div id="list-container"></div>
 </div>
 
 <div id="step2" class="page">
-    <div class="pts-banner">合計: <span id="total-pts-2">0</span> P</div>
-    <div class="cat-title">付帯サービス・実費</div>
+    <div class="pts-banner">家財合計: <span id="total-pts-2">0</span> P</div>
+    <div class="cat-title">付帯サービス（各項目に料金表示）</div>
     <div id="futa-inputs"></div>
-    <div class="cat-title">その他実費入力</div>
-    <div class="var-row"><span>有料道路代</span><div class="ctrls"><input type="number" id="fee-road" class="qty-input" style="width:80px" value="0" onchange="updateCalc()">円</div></div>
+    <div class="cat-title">実費入力</div>
+    <div class="var-row"><span>有料道路代</span><div class="ctrls"><input type="number" id="fee-road" class="qty-input" style="width:100px" value="0" onchange="updateCalc()"> 円</div></div>
 </div>
 
 <div id="step3" class="page">
-    <div class="pts-banner" style="background:var(--orange)">配車計画 (合計: <span id="total-pts-3">0</span> P)</div>
-    
-    <div id="unit-ctrls-area">
-        </div>
-
-    <div class="cat-title">フリー便設定</div>
+    <div class="pts-banner" style="background:var(--orange)">配車計画（計: <span id="total-pts-3">0</span> P）</div>
+    <div id="unit-ctrls-area"></div>
+    <div class="cat-title">フリー便（デフォルト0）</div>
     <div class="var-row">
         <span>想定時間(h)</span>
         <div class="ctrls">
@@ -64,20 +71,17 @@
 
 <div id="step4" class="page">
     <div style="background:#fff4e5; padding:15px; border:2px solid var(--orange); border-radius:8px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-        <b style="color:var(--orange)">繁忙期モードを適用</b>
+        <b style="color:var(--orange)">繁忙期モード適用</b>
         <input type="checkbox" id="is-busy" onchange="updateCalc()" style="width:30px; height:30px;">
     </div>
-    
     <table class="compare-table">
         <tr style="background:var(--blue); color:white;"><th>プラン</th><th>平日</th><th>休日</th></tr>
-        <tr><td>基本(8h)</td><td><span id="wd-fixed" class="price-val">0</span>円</td><td><span id="hd-fixed" class="price-val">0</span>円</td></tr>
-        <tr style="background:#f0fff0;"><td>フリー便</td><td><span id="wd-free" class="price-val" style="color:var(--green)">0</span>円</td><td><span id="hd-free" class="price-val" style="color:var(--green)">0</span>円</td></tr>
+        <tr><td>基本(8h)</td><td><span id="wd-fixed" class="price-val">0</span> 円</td><td><span id="hd-fixed" class="price-val">0</span> 円</td></tr>
+        <tr style="background:#f0fff0;"><td>フリー便</td><td><span id="wd-free" class="price-val" style="color:var(--green)">0</span> 円</td><td><span id="hd-free" class="price-val" style="color:var(--green)">0</span> 円</td></tr>
     </table>
-
-    <div class="cat-title" style="background:var(--blue); margin-top:20px;">実績をiPhoneに保存</div>
-    <div style="display:flex; gap:10px; padding:15px 0;">
-        <button onclick="saveLog('成約')" style="flex:1; background:var(--green); color:white; padding:18px; border:none; border-radius:8px; font-weight:bold; font-size:1.1rem;">成約</button>
-        <button onclick="saveLog('失注')" style="flex:1; background:var(--red); color:white; padding:18px; border:none; border-radius:8px; font-weight:bold; font-size:1.1rem;">失注</button>
+    <div style="display:flex; gap:10px; margin-top:25px;">
+        <button onclick="saveLog('成約')" style="flex:1; background:var(--green); color:white; padding:18px; border:none; border-radius:8px; font-weight:bold; font-size:1.1rem;">成約保存</button>
+        <button onclick="saveLog('失注')" style="flex:1; background:var(--red); color:white; padding:18px; border:none; border-radius:8px; font-weight:bold; font-size:1.1rem;">失注保存</button>
     </div>
 </div>
 
