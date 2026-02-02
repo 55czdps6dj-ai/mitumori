@@ -1,8 +1,18 @@
+// 状態管理
 let currentPage = 1;
 let inputCounts = JSON.parse(localStorage.getItem('moveCounts')) || {};
 let freeItems = JSON.parse(localStorage.getItem('freeItems')) || [];
 
-// ページ分割設定（Ver7までの形式に準拠）
+// データ互換性のための処理 (ここが重要！)
+let masterData = {};
+if (typeof categorizedMoveData !== 'undefined') {
+    masterData = categorizedMoveData;
+} else if (typeof moveData !== 'undefined') {
+    // 以前のフラットな配列形式だった場合の救済処置
+    masterData = { "全家財": moveData };
+}
+
+// ページ分割設定（Ver7の使い勝手を再現）
 const pageConfig = [
     { title: "1. リビング・キッチン", cats: ["1. リビング", "2. ダイニング・キッチン"] },
     { title: "2. 寝室・洗面・玄関", cats: ["3. 寝室・収納", "5. 洗面所", "6. 玄関"] },
@@ -10,11 +20,19 @@ const pageConfig = [
     { title: "4. 外回り・その他", cats: ["7. ベランダ・外回り", "8. その他", "9. 引越資材"] }
 ];
 
-// ポイント参照用マスタ
+// ポイント検索用マスタ作成
 const itemMaster = {};
-Object.values(categorizedMoveData).flat().forEach(i => itemMaster[i.n] = i.p);
+Object.values(masterData).flat().forEach(i => {
+    if(i && i.n) itemMaster[i.n] = i.p;
+});
 
 function init() {
+    // リストが空の場合のチェック
+    if (Object.keys(itemMaster).length === 0) {
+        document.getElementById('item-list-container').innerHTML = 
+            "<p style='color:red; padding:20px;'>エラー：家財データ(item_list.js)が読み込めていません。ファイル名と中身を確認してください。</p>";
+        return;
+    }
     renderPage();
     setupSearch();
     updateUI();
@@ -30,14 +48,17 @@ function renderPage() {
     document.getElementById('page-indicator').textContent = `${currentPage} / 5`;
 
     pageConfig[currentPage-1].cats.forEach(catName => {
-        const label = document.createElement('div');
-        label.className = 'category-label';
-        label.textContent = catName;
-        container.appendChild(label);
+        // カテゴリーが存在する場合のみ描画
+        if (masterData[catName]) {
+            const label = document.createElement('div');
+            label.className = 'category-label';
+            label.textContent = catName;
+            container.appendChild(label);
 
-        categorizedMoveData[catName].forEach(item => {
-            container.appendChild(createItemRow(item));
-        });
+            masterData[catName].forEach(item => {
+                container.appendChild(createItemRow(item));
+            });
+        }
     });
     window.scrollTo(0,0);
 }
@@ -129,14 +150,13 @@ function updateUI() {
     });
 
     document.getElementById('total-points').textContent = total;
-    // トラック連動：200/300/360
     let cap = total <= 200 ? 200 : (total <= 300 ? 300 : 360);
-    let name = total <= 200 ? "2tショート" : (total <= 300 ? "2tロング" : "3t車");
+    let nameText = total <= 200 ? "2tショート" : (total <= 300 ? "2tロング" : "3t車");
     let pct = Math.min(100, Math.round((total / cap) * 100));
     
     document.getElementById('load-bar-fill').style.width = pct + "%";
     document.getElementById('load-bar-fill').style.backgroundColor = pct > 90 ? "#ef4444" : "#10b981";
-    document.getElementById('truck-name').textContent = name;
+    document.getElementById('truck-name').textContent = nameText;
     document.getElementById('load-percent').textContent = pct + "%";
 }
 
@@ -172,4 +192,5 @@ async function copyResult() {
     alert('結果をコピーしました！LINE等に貼り付けられます。');
 }
 
+// 実行
 init();
