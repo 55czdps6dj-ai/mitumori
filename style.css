@@ -1,32 +1,56 @@
-.compare-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 15px 0;
-    background: #fff;
-    font-size: 0.9rem;
-}
-.compare-table th, .compare-table td {
-    padding: 10px;
-    border: 1px solid #eee;
-    text-align: right;
-}
-.compare-table th { background: #f8fafc; text-align: center; }
-.total-row { background: #fffcf0; font-weight: bold; }
-.main-price { color: var(--primary); font-size: 1.4rem; }
+:root { --primary: #2563eb; --accent: #f59e0b; --bg: #f1f5f9; --white: #fff; }
+body { font-family: sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: #334155; }
+.app-container { max-width: 600px; margin: 0 auto; }
 
-.price-diff-note {
-    text-align: center;
-    font-weight: bold;
-    padding: 10px;
-    background: #f0fdf4;
-    border-radius: 8px;
-    margin-bottom: 15px;
-}
+/* ページ切り替え */
+.step-page { display: none; padding: 10px; }
+.step-page.active { display: block; }
 
-#day-factor {
-    width: 100%;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid var(--primary);
-    background: white;
-}
+/* ヘッダー・検索 */
+.header-v7 { background: var(--white); padding: 15px; border-bottom: 2px solid #e2e8f0; sticky: top; z-index: 100; }
+.top-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.badge { background: #e2e8f0; padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: bold; }
+.total-pts { font-size: 2rem; font-weight: 800; color: var(--primary); }
+.search-v7 { position: relative; }
+.search-v7 input { width: 100%; padding: 12px; border: 2px solid var(--primary); border-radius: 8px; box-sizing: border-box; }
+#clear-search { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: none; font-size: 1.2rem; }
+
+/* 家財リスト */
+.category-group { margin-top: 10px; background: var(--white); border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden; }
+.cat-header { padding: 15px; font-weight: bold; background: #f8fafc; cursor: pointer; display: flex; justify-content: space-between; }
+.cat-body { display: none; }
+.category-group.open .cat-body { display: block; }
+.item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-top: 1px solid #f1f5f9; }
+.item-ctrls button { width: 34px; height: 34px; border-radius: 50%; border: none; background: #f1f5f9; font-weight: bold; }
+.item-ctrls span { margin: 0 10px; font-weight: bold; min-width: 20px; text-align: center; display: inline-block; }
+
+/* 見積セクション */
+.v7-section { background: var(--white); padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.v7-section h3 { margin-top: 0; font-size: 1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
+.v7-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.v7-input label { font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 4px; }
+.v7-input input, .v7-input select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+.minus-input { color: #ef4444; font-weight: bold; }
+
+/* 付帯サービス */
+.opt-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f8fafc; }
+.opt-price, .custom-opt-price { width: 80px; text-align: right; padding: 5px; border: 1px solid #eee; }
+.free-opt-input { display: flex; gap: 5px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #eee; }
+
+/* 比較テーブル */
+.compare-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+.compare-table th, .compare-table td { padding: 10px; border: 1px solid #f1f5f9; text-align: right; }
+.total-row { background: #fffcf0; }
+.main-price { color: var(--primary); font-size: 1.4rem; font-weight: bold; }
+.price-diff-note { text-align: center; padding: 10px; background: #f0fdf4; border-radius: 8px; margin-top: 10px; font-weight: bold; }
+
+/* ナビゲーション */
+.v7-nav { position: fixed; bottom: 0; width: 100%; max-width: 600px; background: var(--white); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; box-sizing: border-box; }
+.v7-nav button { padding: 12px 25px; border-radius: 8px; border: none; background: #64748b; color: #fff; font-weight: bold; }
+.v7-nav button.next { background: var(--primary); }
+.dot { height: 8px; width: 8px; background: #cbd5e1; border-radius: 50%; display: inline-block; margin: 0 4px; }
+.dot.active { background: var(--primary); width: 20px; border-radius: 4px; }
+
+.v7-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; margin-top: 10px; }
+.copy { background: #10b981; color: #fff; }
+.reset { background: #fff; color: #ef4444; border: 1px solid #ef4444; }
