@@ -1,249 +1,144 @@
-// app.js - 京王運輸 専用見積システムエンジン (Ver 7.5)
-let counts = {};
-let customFutai = []; // {id, name, price}
-let currentPage = 1;
+// 状態管理
+let inputCounts = JSON.parse(localStorage.getItem('moveCounts')) || {};
 
-/**
- * 1. 初期化処理
- */
+// ユーザー指定のトラック積載基準
+const TRUCK_CAPACITY = {
+    SMALL: 200,   // 2tショート
+    LONG: 300,    // 2tロング
+    LARGE: 360    // 3t車
+};
+
+// アイテムのポイントを即座に引けるようにマスタを作成
+const itemPointMaster = {};
+Object.values(categorizedMoveData).flat().forEach(i => {
+    itemPointMaster[i.n] = i.p;
+});
+
 function init() {
-    // 管理画面(localStorage)で保存された単価設定があれば上書き適用
-    const savedMaster = localStorage.getItem('keio_quote_master');
-    if (savedMaster && typeof master !== 'undefined') {
-        Object.assign(master, JSON.parse(savedMaster));
-    }
-
-    // 家財リストの生成 (117項目)
-    const list = document.getElementById('list-container');
-    if (typeof moveDataFlat !== 'undefined') {
-        moveDataFlat.forEach(item => {
-            list.appendChild(createRow(item));
-        });
-    }
-
-    renderAC();      // エアコン入力エリア描画
-    renderUnits();   // 配車設定エリア描画
-    setupSearch();   // 検索機能の有効化
-    updateCalc();    // 初回計算
-}
-
-/**
- * 2. 家財リストの行(HTML)生成
- */
-function createRow(item) {
-    let row = document.createElement('div');
-    row.className = 'var-row';
-    row.dataset.name = item.n; // 検索用
-    row.innerHTML = `
-        <div class="item-info">
-            <span style="font-weight:bold; font-size:1rem;">${item.n}</span>
-            <div class="size-text">
-                ${item.p}P / H:${item.h} W:${item.w} D:${item.d}
-            </div>
-        </div>
-        <div class="ctrls">
-            <button class="btn-qty" onclick="chg('${item.n}', -1, ${item.p})">－</button>
-            <input type="number" id="q-${item.n}" class="qty-input" value="0" readonly>
-            <button class="btn-qty" onclick="chg('${item.n}', 1, ${item.p})">＋</button>
-        </div>`;
-    return row;
-}
-
-/**
- * 3. 検索フィルタリング機能
- */
-function setupSearch() {
-    const searchInput = document.getElementById('item-search');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase();
-            document.querySelectorAll('#list-container .var-row').forEach(row => {
-                const name = row.dataset.name ? row.dataset.name.toLowerCase() : "";
-                row.style.display = name.includes(val) ? 'flex' : 'none';
-            });
-        });
-    }
-}
-
-/**
- * 4. 数量変更 ＆ 選択済みサマリー更新
- */
-function chg(name, d, p) {
-    counts[name] = Math.max(0, (counts[name] || 0) + d);
-    const inputEl = document.getElementById('q-' + name);
-    if (inputEl) inputEl.value = counts[name];
+    const container = document.getElementById('accordion-container');
     
-    let totalPts = 0;
-    const summaryArea = document.getElementById('selected-summary');
-    const summaryList = document.getElementById('selected-items-list');
-    summaryList.innerHTML = '';
-    
-    // moveDataFlatの定義順(1番〜117番)を守ってバッジを表示
-    moveDataFlat.forEach(item => {
-        const qty = counts[item.n] || 0;
-        if (qty > 0) {
-            totalPts += qty * item.p;
-            let badge = document.createElement('span');
-            badge.className = 'badge';
-            badge.innerText = `${item.n} × ${qty}`;
-            summaryList.appendChild(badge);
-        }
-    });
-    
-    summaryArea.style.display = totalPts > 0 ? 'block' : 'none';
-    document.getElementById('total-pts-1').innerText = totalPts;
-    updateCalc();
-}
-
-/**
- * 5. 固定付帯(エアコン工事)の描画
- */
-function renderAC() {
-    const area = document.getElementById('ac-inputs');
-    if (!area) return;
-    futaiFixed.forEach(f => {
-        let d = document.createElement('div');
-        d.className = 'var-row';
-        d.innerHTML = `
-            <span>${f.n} (${f.p.toLocaleString()}円)</span>
-            <div class="ctrls">
-                <button class="btn-qty" onclick="spinF('${f.id}', -1)">－</button>
-                <input type="number" id="${f.id}" class="qty-input" value="0" readonly>
-                <button class="btn-qty" onclick="spinF('${f.id}', 1)">＋</button>
-            </div>`;
-        area.appendChild(d);
-    });
-}
-
-/**
- * 6. 自由入力付帯の管理
- */
-function addCustomFuta() {
-    customFutai.push({ id: Date.now(), name: '', price: 0 });
-    renderCustomList();
-}
-
-function renderCustomList() {
-    const container = document.getElementById('custom-list');
-    if (!container) return;
-    container.innerHTML = '';
-    customFutai.forEach((f, index) => {
-        let d = document.createElement('div');
-        d.className = 'custom-item-row';
-        d.innerHTML = `
-            <input type="text" placeholder="項目名" value="${f.name}" oninput="customFutai[${index}].name=this.value; updateCalc()" style="flex:2;">
-            <input type="number" placeholder="金額" value="${f.price}" oninput="customFutai[${index}].price=Number(this.value); updateCalc()" style="flex:1;">
-            <button onclick="customFutai.splice(${index},1); renderCustomList(); updateCalc()" style="background:var(--red); color:white; border:none; border-radius:4px; width:35px;">×</button>
+    for (const [catName, items] of Object.entries(categorizedMoveData)) {
+        const group = document.createElement('div');
+        group.className = 'category-group';
+        
+        const header = document.createElement('div');
+        header.className = 'category-header';
+        // カテゴリー名と小計を表示する枠を作成
+        header.innerHTML = `
+            <span>${catName}</span>
+            <span class="cat-subtotal" data-cat="${catName}">0 pt</span>
         `;
-        container.appendChild(d);
-    });
+        header.onclick = () => group.classList.toggle('open');
+        
+        const content = document.createElement('div');
+        content.className = 'category-content';
+        
+        items.forEach(item => {
+            if (inputCounts[item.n] === undefined) inputCounts[item.n] = 0;
+            
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <div class="item-info">
+                    <span class="item-name">${item.n}</span>
+                    <span class="item-pts">${item.p} pt</span>
+                </div>
+                <div class="controls">
+                    <button class="btn-qty" onclick="updateQty('${item.n}', -1)">-</button>
+                    <span class="qty-val" data-name="${item.n}">${inputCounts[item.n]}</span>
+                    <button class="btn-qty btn-plus" onclick="updateQty('${item.n}', 1)">+</button>
+                </div>
+            `;
+            content.appendChild(row);
+        });
+        
+        group.appendChild(header);
+        group.appendChild(content);
+        container.appendChild(group);
+    }
+    updateUI();
 }
 
-/**
- * 7. 料金計算メインロジック
- */
-function updateCalc() {
-    const isBusy = document.getElementById('is-busy')?.checked;
-    const isDiscount = document.getElementById('is-discount')?.checked;
+function updateQty(itemName, delta) {
+    const newVal = Math.max(0, (inputCounts[itemName] || 0) + delta);
+    inputCounts[itemName] = newVal;
+    localStorage.setItem('moveCounts', JSON.stringify(inputCounts));
+    updateUI();
+}
+
+function updateUI() {
+    // 1. 全ての数量表示を同期更新
+    for (const [name, count] of Object.entries(inputCounts)) {
+        document.querySelectorAll(`.qty-val[data-name="${name}"]`).forEach(el => {
+            el.textContent = count;
+        });
+    }
+
+    // 2. カテゴリーごとの小計計算と強調表示
+    let grandTotal = 0;
     
-    // 入力値取得
-    const n1 = parseInt(document.getElementById('unit-1t')?.value) || 0;
-    const n2 = parseInt(document.getElementById('unit-2t')?.value) || 0;
-    const n3 = parseInt(document.getElementById('unit-3t')?.value) || 0;
-    const n4 = parseInt(document.getElementById('unit-4t')?.value) || 0;
-    const nS = parseInt(document.getElementById('unit-staff')?.value) || 0;
-    const h = parseFloat(document.getElementById('work-time')?.value) || 0;
+    // 全体の合計を出すために、まずは入力されているユニークなアイテムから計算
+    const activeItemNames = Object.keys(inputCounts);
+    grandTotal = activeItemNames.reduce((sum, name) => {
+        return sum + (inputCounts[name] * (itemPointMaster[name] || 0));
+    }, 0);
 
-    // A. 運賃計算 (車両＋人工)
-    let wdBase = 0, hdBase = 0;
-    if (!isBusy) {
-        wdBase = n1*master.wd1t + n2*master.wd2t + n3*master.wd3t + n4*master.wd4t + nS*master.wdSt;
-        hdBase = n1*master.hd1t + n2*master.hd2t + n3*master.hd3t + n4*master.hd4t + nS*master.hdSt;
+    // カテゴリー見出しの更新
+    document.querySelectorAll('.category-group').forEach(group => {
+        const catName = group.querySelector('.category-header span:first-child').textContent;
+        const itemsInCat = categorizedMoveData[catName];
+        
+        // そのカテゴリー内の小計を計算
+        const subtotal = itemsInCat.reduce((sum, item) => {
+            return sum + ((inputCounts[item.n] || 0) * item.p);
+        }, 0);
+
+        const subtotalEl = group.querySelector('.cat-subtotal');
+        subtotalEl.textContent = subtotal > 0 ? `${subtotal} pt` : '0 pt';
+        group.classList.toggle('has-value', subtotal > 0);
+    });
+
+    // 3. メイン表示の更新
+    document.getElementById('total-points').textContent = grandTotal.toLocaleString();
+    updateSimulator(grandTotal);
+}
+
+function updateSimulator(pts) {
+    const bar = document.getElementById('load-bar-fill');
+    const nameEl = document.getElementById('truck-name');
+    const pctEl = document.getElementById('load-percent');
+    
+    let capacity = 0;
+    let name = "";
+
+    // ユーザー指定の条件分岐
+    if (pts <= TRUCK_CAPACITY.SMALL) {
+        capacity = TRUCK_CAPACITY.SMALL;
+        name = "推奨：2tショート車";
+    } else if (pts <= TRUCK_CAPACITY.LONG) {
+        capacity = TRUCK_CAPACITY.LONG;
+        name = "推奨：2tロング車";
     } else {
-        wdBase = n1*master.bwd1t + n2*master.bwd2t + n3*master.bwd3t + n4*master.bwd4t + nS*master.bwdSt;
-        hdBase = n1*master.bhd1t + n2*master.bhd2t + n3*master.bhd3t + n4*master.bhd4t + nS*master.bhdSt;
+        capacity = TRUCK_CAPACITY.LARGE;
+        name = pts > TRUCK_CAPACITY.LARGE ? "3t車オーバー（要相談）" : "推奨：3t車";
     }
 
-    // B. 運賃20%割引適用 (車両費・作業員費のみ)
-    if (isDiscount) {
-        wdBase *= 0.8;
-        hdBase *= 0.8;
+    const percent = Math.min(100, Math.round((pts / capacity) * 100));
+    bar.style.width = percent + "%";
+    
+    // 積載率による色の変化（90%超えで注意喚起の赤）
+    bar.style.backgroundColor = percent > 90 ? "#ef4444" : "#10b981";
+    nameEl.textContent = name;
+    pctEl.textContent = percent + "%";
+}
+
+document.getElementById('reset-btn').onclick = () => {
+    if(confirm('全ての入力を消去してリセットしますか？')) {
+        inputCounts = {};
+        localStorage.removeItem('moveCounts');
+        location.reload();
     }
-
-    // C. 付帯・実費の集計 (割引対象外)
-    let extraFee = parseInt(document.getElementById('fee-road')?.value) || 0;
-    // 固定付帯(エアコン等)
-    futaiFixed.forEach(f => {
-        let q = parseInt(document.getElementById(f.id)?.value) || 0;
-        extraFee += q * f.p;
-    });
-    // 自由入力付帯
-    customFutai.forEach(f => { extraFee += f.price; });
-
-    // D. フリー便割引計算
-    let freeDiscount = 0;
-    if (h > 0 && h < 8) {
-        // 戻り時間に応じた控除
-        freeDiscount = ((n1+n2+n3) * master.f_car + nS * master.f_man) * (8 - h);
-        if (isDiscount) freeDiscount *= 0.8; // 割引時は控除額も割引単価ベースに
-    }
-
-    // 結果表示
-    document.getElementById('wd-fixed').innerText = Math.round(wdBase + extraFee).toLocaleString();
-    document.getElementById('hd-fixed').innerText = Math.round(hdBase + extraFee).toLocaleString();
-    document.getElementById('wd-free').innerText = Math.round(Math.max(0, wdBase - freeDiscount + extraFee)).toLocaleString();
-    document.getElementById('hd-free').innerText = Math.round(Math.max(0, hdBase - freeDiscount + extraFee)).toLocaleString();
-}
-
-/**
- * 8. UI描画 ＆ ナビゲーション
- */
-function renderUnits() {
-    const area = document.getElementById('unit-ctrls-area');
-    if (!area) return;
-    const units = [
-        {id:'unit-1t', n:'1t車以下'}, {id:'unit-2t', n:'2t車'},
-        {id:'unit-3t', n:'3t車'}, {id:'unit-4t', n:'4t車'}, {id:'unit-staff', n:'作業員'}
-    ];
-    units.forEach(u => {
-        let d = document.createElement('div');
-        d.className = 'var-row';
-        d.innerHTML = `
-            <span>${u.n}</span>
-            <div class="ctrls">
-                <button class="btn-qty" onclick="spin('${u.id}', -1, 0, 99)">－</button>
-                <input type="number" id="${u.id}" class="qty-input" value="0" readonly>
-                <button class="btn-qty" onclick="spin('${u.id}', 1, 0, 99)">＋</button>
-            </div>`;
-        area.appendChild(d);
-    });
-}
-
-function spin(id, d, min, max) {
-    let el = document.getElementById(id);
-    if (!el) return;
-    el.value = Math.min(Math.max((parseInt(el.value)||0)+d, min), max);
-    updateCalc();
-}
-
-function spinF(id, d) {
-    let el = document.getElementById(id);
-    if (!el) return;
-    el.value = Math.max(0, (parseInt(el.value)||0)+d);
-    updateCalc();
-}
-
-function movePage(d) {
-    let next = currentPage + d;
-    if (next < 1 || next > 4) return;
-    document.getElementById(`step${currentPage}`).classList.remove('active');
-    document.getElementById(`step${next}`).classList.add('active');
-    currentPage = next;
-    const titles = ["家財入力", "付帯・実費", "配車設定", "結果比較"];
-    document.getElementById('page-title').innerText = titles[currentPage - 1];
-    document.getElementById('step-indicator').innerText = currentPage + " / 4";
-    window.scrollTo(0, 0);
-}
+};
 
 // 起動
-window.onload = init;
+init();
