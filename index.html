@@ -3,39 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>引越見積集計システム Ver8.0</title>
+    <title>引越見積システム Ver8.5</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
-        <header>
-            <div class="header-main">
-                <h1>引越見積システム</h1>
-                <div class="total-pts-box">
-                    <span id="total-points">0</span> <small>pt</small>
+        <div id="page-1" class="page active">
+            <header>
+                <div class="header-main">
+                    <h1>家財集計</h1>
+                    <div class="total-pts-box"><span id="total-points">0</span><small>pt</small></div>
                 </div>
-            </div>
-            
-            <div class="truck-sim">
-                <div class="truck-info">
-                    <span id="truck-name">推奨：軽トラック</span>
-                    <span id="load-percent">0%</span>
+                <div class="truck-sim">
+                    <div class="truck-info"><span id="truck-name">推奨：2tショート</span><span id="load-percent">0%</span></div>
+                    <div class="load-bar-bg"><div id="load-bar-fill"></div></div>
                 </div>
-                <div class="load-bar-bg">
-                    <div id="load-bar-fill"></div>
+                <div class="search-box">
+                    <input type="text" id="item-search" placeholder="家具名で検索..." autocomplete="off">
+                    <button id="clear-search">×</button>
                 </div>
-            </div>
-        </header>
+            </header>
 
-        <main id="accordion-container">
+            <main id="accordion-container"></main>
+
+            <footer>
+                <button class="nav-btn next" onclick="switchPage(2)">次へ（結果確認）</button>
+                <button id="reset-btn">全データリセット</button>
+            </footer>
+        </div>
+
+        <div id="page-2" class="page">
+            <header>
+                <h1>見積詳細・メモ</h1>
+            </header>
+            <main class="result-container">
+                <div class="summary-card">
+                    <h3>積載予測</h3>
+                    <p id="final-truck">-</p>
+                    <p id="final-points">合計: 0 pt</p>
+                </div>
+
+                <div class="free-input-area">
+                    <h3>現場メモ・フリー入力欄</h3>
+                    <textarea id="free-memo" placeholder="特記事項（例：養生注意、タワーマンション等）や、リストにない家財を入力してください。"></textarea>
+                </div>
+
+                <div class="input-list-preview">
+                    <h3>集計済み家財</h3>
+                    <ul id="selected-items-list"></ul>
+                </div>
             </main>
-
-        <footer>
-            <button id="reset-btn">全てのデータをリセット</button>
-            <p class="ver-info">System Ver 8.0 | 動線最適化モデル</p>
-        </footer>
+            <footer>
+                <button class="nav-btn prev" onclick="switchPage(1)">戻る</button>
+                <button class="nav-btn share" onclick="copyToClipboard()">内容をコピー</button>
+            </footer>
+        </div>
     </div>
-
     <script src="item_list.js"></script>
     <script src="app.js"></script>
 </body>
