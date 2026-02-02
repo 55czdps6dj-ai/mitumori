@@ -1,91 +1,61 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>引越見積 Ver12.0</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="app-container">
-        <section id="step-1" class="step-page active">
-            <header class="sticky-header">
-                <div class="status-bar">
-                    <span class="step-title">1. 家財リスト</span>
-                    <div class="pt-badge"><span id="total-points">0</span> pt</div>
-                </div>
-                <div class="search-container">
-                    <input type="text" id="item-search" placeholder="家財を検索（例: 冷蔵庫）..." autocomplete="off">
-                    <button id="clear-search">×</button>
-                </div>
-            </header>
-            <main>
-                <div id="search-results" class="search-result-area"></div>
-                <div id="accordion-container"></div>
-                <div class="free-item-box">
-                    <h3>＋ リスト外の家財を追加</h3>
-                    <div class="free-row">
-                        <input type="text" id="free-name" placeholder="家財名">
-                        <input type="number" id="free-pt" placeholder="pt">
-                        <button onclick="addFreeItem()">追加</button>
-                    </div>
-                    <div id="free-items-list"></div>
-                </div>
-            </main>
-        </section>
+<div id="step-2" class="step-page">
+    <header class="header-v7"><h1>2. プラン比較・割引</h1></header>
+    
+    <section class="v7-section">
+        <h3>■ プラン・日程条件</h3>
+        <div class="v7-grid">
+            <div class="v7-input">
+                <label>基本単価/pt</label>
+                <input type="number" id="price-per-pt" value="200" oninput="updateUI()">
+            </div>
+            <div class="v7-input">
+                <label>日程係数 (%)</label>
+                <select id="day-factor" onchange="updateUI()">
+                    <option value="100">平日 (100%)</option>
+                    <option value="120">土日祝 (+20%)</option>
+                    <option value="150">繁忙期 (+50%)</option>
+                    <option value="80">フリー便 (-20%)</option>
+                </select>
+            </div>
+        </div>
+    </section>
 
-        <section id="step-2" class="step-page">
-            <header><h1>2. 付帯サービス</h1></header>
-            <main class="option-grid">
-                <label class="opt-card"><input type="checkbox" class="opt-check" data-name="エアコン脱着" data-price="16500"> エアコン脱着 (¥16,500)</label>
-                <label class="opt-card"><input type="checkbox" class="opt-check" data-name="洗濯機設置" data-price="3300"> 洗濯機設置 (¥3,300)</label>
-                <label class="opt-card"><input type="checkbox" class="opt-check" data-name="不用品回収" data-price="11000"> 不用品回収 (¥11,000〜)</label>
-                <label class="opt-card"><input type="checkbox" class="opt-check" data-name="ピアノ運送" data-price="22000"> ピアノ運送 (¥22,000)</label>
-            </main>
-        </section>
+    <section class="v7-section">
+        <h3>■ 付帯サービス & カスタム項目</h3>
+        <div id="option-list"></div>
+        <div class="free-opt-input">
+            <input type="text" id="new-opt-name" placeholder="追加項目名">
+            <input type="number" id="new-opt-price" placeholder="金額">
+            <button onclick="addCustomOption()">追加</button>
+        </div>
+        <div id="custom-option-list"></div>
+    </section>
 
-        <section id="step-3" class="step-page">
-            <header><h1>3. 車両・作業員</h1></header>
-            <main class="setting-container">
-                <div class="truck-prediction">
-                    <label>自動算出・推奨車両:</label>
-                    <div id="auto-truck-name" class="truck-label">-</div>
-                    <div class="progress-container"><div id="load-bar"></div></div>
-                </div>
-                <div class="input-group">
-                    <label>車両数:</label>
-                    <input type="number" id="truck-count" value="1" min="1"> 台
-                </div>
-                <div class="input-group">
-                    <label>作業員:</label>
-                    <input type="number" id="staff-count" value="2" min="1"> 名
-                </div>
-            </main>
-        </section>
+    <section class="v7-section">
+        <h3>■ 値引き・調整</h3>
+        <div class="v7-grid">
+            <div class="v7-input">
+                <label>特別割引 (¥)</label>
+                <input type="number" id="special-discount" value="0" oninput="updateUI()" style="color:red;">
+            </div>
+            <div class="v7-input">
+                <label>割引率 (%)</label>
+                <input type="number" id="discount-rate" value="0" oninput="updateUI()" style="color:red;">
+            </div>
+        </div>
+    </section>
 
-        <section id="step-4" class="step-page">
-            <header><h1>4. 見積合計</h1></header>
-            <main class="result-container">
-                <div class="price-banner">
-                    <small>概算見積金額</small>
-                    <div id="final-price">¥ 0</div>
-                </div>
-                <div class="summary-box">
-                    <h3>■ 見積内訳</h3>
-                    <ul id="summary-items"></ul>
-                </div>
-                <button class="action-btn copy" onclick="copyResult()">結果をコピー</button>
-                <button class="action-btn reset" onclick="resetData()">全リセット</button>
-            </main>
-        </section>
+    <section class="v7-section highlight">
+        <h3>■ 見積金額比較</h3>
+        <table class="compare-table">
+            <tr><th>項目</th><th>現在条件</th><th>平日目安</th></tr>
+            <tr><td>基本運賃</td><td id="row-base">-</td><td id="row-base-std">-</td></tr>
+            <tr><td>付帯合計</td><td id="row-opt">-</td><td id="row-opt-std">-</td></tr>
+            <tr class="total-row"><td>合計額</td><td id="final-price" class="main-price">¥ 0</td><td id="std-price">¥ 0</td></tr>
+        </table>
+        <div class="price-diff-note" id="price-diff-msg"></div>
+    </section>
 
-        <nav class="bottom-nav">
-            <button onclick="moveStep(-1)" id="prev-btn">前へ</button>
-            <div id="step-indicator">Step 1 / 4</div>
-            <button onclick="moveStep(1)" id="next-btn">次へ</button>
-        </nav>
-    </div>
-    <script src="item_list.js"></script>
-    <script src="app.js"></script>
-</body>
-</html>
+    <button class="v7-btn copy" onclick="copyResult()">見積内容をコピー</button>
+    <button class="v7-btn reset" onclick="resetData()">全消去</button>
+</div>
