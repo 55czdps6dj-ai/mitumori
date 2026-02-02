@@ -1,127 +1,171 @@
 let inputCounts = JSON.parse(localStorage.getItem('moveCounts')) || {};
-let freeMemo = localStorage.getItem('moveMemo') || "";
+let freeItems = JSON.parse(localStorage.getItem('freeItems')) || []; // [{n:"ピアノ", p:20, q:1}]
 const TRUCK_CAPACITY = { SMALL: 200, LONG: 300, LARGE: 360 };
 const itemPointMaster = {};
 Object.values(categorizedMoveData).flat().forEach(i => { itemPointMaster[i.n] = i.p; });
 
 function init() {
+    renderCategories();
+    setupSearch();
+    updateUI();
+}
+
+// 通常のアコーディオン描画
+function renderCategories() {
     const container = document.getElementById('accordion-container');
-    document.getElementById('free-memo').value = freeMemo;
-    
+    container.innerHTML = '';
     for (const [catName, items] of Object.entries(categorizedMoveData)) {
         const group = document.createElement('div');
         group.className = 'category-group';
         group.innerHTML = `
             <div class="category-header" onclick="this.parentElement.classList.toggle('open')">
-                <span>${catName}</span><span class="cat-subtotal" data-cat="${catName}">0 pt</span>
+                <span>${catName}</span><span class="cat-pts" id="sub-${catName}">0 pt</span>
             </div>
             <div class="category-content"></div>
         `;
         const content = group.querySelector('.category-content');
-        items.forEach(item => {
-            if (inputCounts[item.n] === undefined) inputCounts[item.n] = 0;
-            const row = document.createElement('div');
-            row.className = 'item-row';
-            row.setAttribute('data-name', item.n);
-            row.innerHTML = `
-                <div class="item-info"><span class="item-name">${item.n}</span><span class="item-pts">${item.p} pt</span></div>
-                <div class="controls">
-                    <button class="btn-qty" onclick="updateQty('${item.n}', -1)">-</button>
-                    <span class="qty-val" data-item-name="${item.n}">${inputCounts[item.n]}</span>
-                    <button class="btn-qty btn-plus" onclick="updateQty('${item.n}', 1)">+</button>
-                </div>
-            `;
-            content.appendChild(row);
-        });
+        items.forEach(item => content.appendChild(createItemRow(item)));
         container.appendChild(group);
     }
-    setupEventListeners();
-    updateUI();
 }
 
-function setupEventListeners() {
+// 家財行の生成（共通部品）
+function createItemRow(item) {
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+        <div class="item-info"><strong>${item.n}</strong><br><small>${item.p} pt</small></div>
+        <div class="controls">
+            <button class="btn-qty" onclick="updateQty('${item.n}', -1)">-</button>
+            <span class="qty-val" data-name="${item.n}">${inputCounts[item.n] || 0}</span>
+            <button class="btn-qty btn-plus" onclick="updateQty('${item.n}', 1)">+</button>
+        </div>
+    `;
+    return row;
+}
+
+// 予測変換検索
+function setupSearch() {
     const sInput = document.getElementById('item-search');
-    sInput.oninput = (e) => filterItems(e.target.value.trim());
-    document.getElementById('clear-search').onclick = () => { sInput.value = ''; filterItems(''); };
-    document.getElementById('free-memo').oninput = (e) => {
-        freeMemo = e.target.value;
-        localStorage.setItem('moveMemo', freeMemo);
+    const resultDiv = document.getElementById('search-results');
+    const accordion = document.getElementById('accordion-container');
+
+    sInput.oninput = (e) => {
+        const term = e.target.value.trim();
+        resultDiv.innerHTML = '';
+        if (term === '') {
+            accordion.style.display = 'block';
+            return;
+        }
+        accordion.style.display = 'none';
+        
+        // 全家財から検索して表示（予測変換）
+        const allItems = Object.values(categorizedMoveData).flat();
+        const seen = new Set();
+        allItems.forEach(item => {
+            if (item.n.includes(term) && !seen.has(item.n)) {
+                resultDiv.appendChild(createItemRow(item));
+                seen.add(item.n);
+            }
+        });
     };
 }
 
-function filterItems(term) {
-    document.querySelectorAll('.category-group').forEach(group => {
-        let hasMatch = false;
-        group.querySelectorAll('.item-row').forEach(row => {
-            const match = row.getAttribute('data-name').includes(term);
-            row.style.display = match ? 'flex' : 'none';
-            if (match) hasMatch = true;
-        });
-        group.style.display = (term === '' || hasMatch) ? 'block' : 'none';
-        if (term !== '' && hasMatch) group.classList.add('open');
-    });
-}
-
+// 数量更新
 function updateQty(name, delta) {
     inputCounts[name] = Math.max(0, (inputCounts[name] || 0) + delta);
-    localStorage.setItem('moveCounts', JSON.stringify(inputCounts));
-    document.querySelectorAll(`.qty-val[data-item-name="${name}"]`).forEach(el => el.textContent = inputCounts[name]);
+    save();
+    updateUI();
+    // 画面上の全箇所の数値を同期
+    document.querySelectorAll(`.qty-val[data-name="${name}"]`).forEach(el => el.textContent = inputCounts[name]);
+}
+
+// フリー家財の追加
+function addFreeItem() {
+    const name = document.getElementById('free-name').value;
+    const pt = parseInt(document.getElementById('free-pt').value);
+    if (!name || isNaN(pt)) return;
+    freeItems.push({ n: name, p: pt, q: 1 });
+    document.getElementById('free-name').value = '';
+    document.getElementById('free-pt').value = '';
+    save();
+    updateUI();
+}
+
+function updateFreeQty(index, delta) {
+    freeItems[index].q = Math.max(0, freeItems[index].q + delta);
+    if (freeItems[index].q === 0) freeItems.splice(index, 1);
+    save();
     updateUI();
 }
 
 function updateUI() {
     let total = 0;
-    Object.keys(inputCounts).forEach(name => { total += inputCounts[name] * (itemPointMaster[name] || 0); });
-    
-    document.querySelectorAll('.category-group').forEach(group => {
-        const cat = group.querySelector('.category-header span').textContent;
-        const sub = categorizedMoveData[cat].reduce((s, i) => s + (inputCounts[i.n] * i.p), 0);
-        group.querySelector('.cat-subtotal').textContent = sub + " pt";
+    // 既定家財
+    Object.keys(inputCounts).forEach(n => total += inputCounts[n] * (itemPointMaster[n] || 0));
+    // フリー家財
+    const freeDiv = document.getElementById('free-items-display');
+    freeDiv.innerHTML = '';
+    freeItems.forEach((item, idx) => {
+        total += item.p * item.q;
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `<div>${item.n}(フリー)<br><small>${item.p}pt</small></div>
+            <div class="controls">
+                <button class="btn-qty" onclick="updateFreeQty(${idx}, -1)">-</button>
+                <span class="qty-val">${item.q}</span>
+                <button class="btn-qty btn-plus" onclick="updateFreeQty(${idx}, 1)">+</button>
+            </div>`;
+        freeDiv.appendChild(row);
     });
 
     document.getElementById('total-points').textContent = total;
-    const sim = updateSimulator(total);
-    
-    // 2ページ目反映
-    document.getElementById('final-truck').textContent = sim.name;
-    document.getElementById('final-points').textContent = `合計ポイント: ${total} pt`;
-    renderSelectedList();
+    updateSimulator(total);
 }
 
 function updateSimulator(pts) {
+    const bar = document.getElementById('load-bar-fill');
+    const nameEl = document.getElementById('truck-name');
     const cap = pts <= TRUCK_CAPACITY.SMALL ? TRUCK_CAPACITY.SMALL : (pts <= TRUCK_CAPACITY.LONG ? TRUCK_CAPACITY.LONG : TRUCK_CAPACITY.LARGE);
     const name = pts <= TRUCK_CAPACITY.SMALL ? "2tショート" : (pts <= TRUCK_CAPACITY.LONG ? "2tロング" : "3t車");
     const pct = Math.min(100, Math.round((pts / cap) * 100));
-    document.getElementById('load-bar-fill').style.width = pct + "%";
-    document.getElementById('truck-name').textContent = `推奨：${name}`;
+    bar.style.width = pct + "%";
+    bar.style.backgroundColor = pct > 90 ? "#ef4444" : "#10b981";
+    nameEl.textContent = name;
     document.getElementById('load-percent').textContent = pct + "%";
-    return { name, pct };
 }
 
-function switchPage(pageNo) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(`page-${pageNo}`).classList.add('active');
+function switchPage(p) {
+    document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+    document.getElementById(`page-${p}`).classList.add('active');
+    if (p === 2) renderFinalResult();
     window.scrollTo(0, 0);
 }
 
-function renderSelectedList() {
-    const list = document.getElementById('selected-items-list');
+function renderFinalResult() {
+    const list = document.getElementById('final-item-list');
     list.innerHTML = '';
-    Object.keys(inputCounts).forEach(name => {
-        if (inputCounts[name] > 0) {
-            const li = document.createElement('li');
-            li.textContent = `${name} × ${inputCounts[name]}`;
-            list.appendChild(li);
-        }
+    const pts = document.getElementById('total-points').textContent;
+    document.getElementById('final-total-pts').textContent = `合計ポイント: ${pts} pt`;
+    document.getElementById('final-truck-name').textContent = document.getElementById('truck-name').textContent;
+
+    Object.keys(inputCounts).forEach(n => {
+        if (inputCounts[n] > 0) list.innerHTML += `<li>${n} × ${inputCounts[n]}</li>`;
     });
+    freeItems.forEach(i => list.innerHTML += `<li>${i.n}(フリー) × ${i.q}</li>`);
 }
 
-async function copyToClipboard() {
-    const items = Object.keys(inputCounts).filter(n => inputCounts[n] > 0).map(n => `${n}:${inputCounts[n]}個`).join('\n');
-    const text = `【引越見積】\n${document.getElementById('final-truck').textContent}\n合計:${document.getElementById('total-points').textContent}pt\n\n■家財内訳\n${items}\n\n■メモ\n${freeMemo}`;
-    await navigator.clipboard.writeText(text);
-    alert('内容をコピーしました！LINE等に貼り付けられます。');
+function save() {
+    localStorage.setItem('moveCounts', JSON.stringify(inputCounts));
+    localStorage.setItem('freeItems', JSON.stringify(freeItems));
 }
 
-document.getElementById('reset-btn').onclick = () => { if(confirm('リセットしますか？')) { localStorage.clear(); location.reload(); } };
+function copyResult() {
+    let txt = `【引越見積】\n車両:${document.getElementById('final-truck-name').textContent}\n合計:${document.getElementById('total-points').textContent}pt\n\n■内訳\n`;
+    Object.keys(inputCounts).forEach(n => { if(inputCounts[n]>0) txt += `${n}×${inputCounts[n]}\n`; });
+    freeItems.forEach(i => txt += `${i.n}(フリー)×${i.q}\n`);
+    navigator.clipboard.writeText(txt);
+    alert('コピーしました！');
+}
+
 init();
