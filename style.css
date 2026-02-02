@@ -2,50 +2,55 @@
     --primary: #2563eb; --danger: #ef4444; --success: #10b981;
     --bg: #f1f5f9; --text: #1e293b; --border: #e2e8f0;
 }
+body { font-family: sans-serif; background: var(--bg); margin: 0; color: var(--text); }
+.app-container { max-width: 600px; margin: 0 auto; position: relative; }
 
-body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-.app-container { max-width: 600px; margin: 0 auto; position: relative; overflow-x: hidden; }
+.page { display: none; padding-bottom: 100px; }
+.page.active { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* ページ切り替え */
-.page { display: none; min-height: 100vh; padding-bottom: 80px; }
-.page.active { display: block; }
-
-header { position: sticky; top: 0; background: white; padding: 12px 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 100; }
+header { position: sticky; top: 0; background: white; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1000; }
 .header-main { display: flex; justify-content: space-between; align-items: center; }
 .total-pts-box { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
 
-/* シミュレーター & 検索 */
-.truck-sim { background: #f8fafc; padding: 8px; border-radius: 8px; border: 1px solid var(--border); margin: 8px 0; }
-.truck-info { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; }
-.load-bar-bg { background: #e2e8f0; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 4px; }
-#load-bar-fill { height: 100%; width: 0%; background: var(--success); transition: 0.3s; }
-.search-box { display: flex; position: relative; margin-top: 8px; }
-#item-search { width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 6px; }
-#clear-search { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: none; font-size: 1.2rem; color: #94a3b8; }
+.truck-sim { background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin: 8px 0; }
+.load-bar-bg { background: #e2e8f0; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 5px; }
+#load-bar-fill { height: 100%; width: 0%; background: var(--success); transition: 0.5s; }
+
+.search-box { display: flex; position: relative; }
+#item-search { width: 100%; padding: 12px; border: 2px solid var(--primary); border-radius: 8px; font-size: 1rem; }
+#clear-search { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: none; font-size: 1.5rem; color: #94a3b8; }
+
+/* 検索結果（予測変換）エリア */
+.search-results-area { background: #fffbeb; border-bottom: 2px solid #fbbf24; }
+
+/* 家財行のデザイン */
+.item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #f1f5f9; background: white; }
+.controls { display: flex; align-items: center; gap: 12px; }
+.btn-qty { width: 40px; height: 40px; border-radius: 50%; border: none; background: #f1f5f9; font-size: 1.2rem; cursor: pointer; }
+.btn-plus { background: var(--primary); color: white; }
+.qty-val { font-weight: bold; font-size: 1.2rem; min-width: 20px; text-align: center; }
 
 /* アコーディオン */
-.category-group { margin: 10px; background: white; border-radius: 8px; border: 1px solid var(--border); }
-.category-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; }
-.cat-subtotal { background: #f1f5f9; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
-.category-content { display: none; border-top: 1px solid #f1f5f9; }
+.category-group { margin: 10px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; background: white; }
+.category-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; background: #f8fafc; font-weight: bold; }
+.category-content { display: none; }
 .category-group.open .category-content { display: block; }
 
-/* 項目 */
-.item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #f8fafc; }
-.controls { display: flex; align-items: center; gap: 10px; }
-.btn-qty { width: 36px; height: 36px; border-radius: 50%; border: none; background: #f1f5f9; font-size: 1.2rem; }
-.btn-plus { background: var(--primary); color: white; }
+/* フリー入力 */
+.free-item-card { margin: 20px 10px; padding: 15px; background: white; border: 2px dashed #cbd5e1; border-radius: 12px; }
+.free-input-row { display: flex; gap: 5px; margin-bottom: 10px; }
+.free-input-row input { padding: 10px; border: 1px solid var(--border); border-radius: 5px; }
+#free-name { flex: 2; }
+#free-pt { flex: 1; }
+.free-input-row button { background: var(--text); color: white; border: none; padding: 0 15px; border-radius: 5px; }
 
-/* 2ページ目：結果表示 */
-.result-container { padding: 15px; }
-.summary-card { background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
-.free-input-area textarea { width: 100%; height: 150px; padding: 12px; border-radius: 8px; border: 2px solid var(--border); box-sizing: border-box; font-size: 1rem; }
-.input-list-preview ul { list-style: none; padding: 0; }
-.input-list-preview li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-
-/* ボタン */
-.nav-btn { width: 100%; padding: 15px; border-radius: 8px; border: none; font-weight: bold; margin-top: 10px; font-size: 1rem; cursor: pointer; }
-.next { background: var(--primary); color: white; }
-.prev { background: #64748b; color: white; }
+/* フッター・ナビ */
+footer { padding: 15px; text-align: center; }
+.nav-btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+.next { background: var(--primary); color: white; margin-bottom: 15px; }
 .share { background: var(--success); color: white; }
-#reset-btn { background: none; color: var(--danger); border: none; margin-top: 10px; cursor: pointer; width: 100%; }
+.back-link { background: none; border: none; color: var(--primary); font-weight: bold; cursor: pointer; }
+#reset-btn { color: var(--danger); background: none; border: none; cursor: pointer; }
+
+.summary-card { background: var(--primary); color: white; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 20px; }
