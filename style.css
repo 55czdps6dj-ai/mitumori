@@ -1,262 +1,51 @@
 :root {
-    --primary: #2563eb;    /* メインの青 */
-    --primary-light: #dbeafe;
-    --danger: #ef4444;     /* 警告・リセットの赤 */
-    --success: #10b981;    /* 積載OKの緑 */
-    --bg: #f1f5f9;         /* 背景の薄いグレー */
-    --text: #1e293b;       /* 文字色 */
-    --border: #e2e8f0;     /* 境界線 */
+    --primary: #2563eb; --danger: #ef4444; --success: #10b981;
+    --bg: #f1f5f9; --text: #1e293b; --border: #e2e8f0;
 }
 
-/* 基本設定 */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    margin: 0;
-    padding: 0;
-    line-height: 1.5;
-    /* iOSでのタップ時のハイライトを抑制 */
-    -webkit-tap-highlight-color: transparent;
-}
+body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+.app-container { max-width: 600px; margin: 0 auto; position: relative; overflow-x: hidden; }
 
-.app-container {
-    max-width: 600px;
-    margin: 0 auto;
-    background: var(--bg);
-    min-height: 100vh;
-}
+/* ページ切り替え */
+.page { display: none; min-height: 100vh; padding-bottom: 80px; }
+.page.active { display: block; }
 
-/* ヘッダー・シミュレーター */
-header {
-    position: sticky;
-    top: 0;
-    background: white;
-    padding: 12px 15px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    z-index: 1000;
-}
+header { position: sticky; top: 0; background: white; padding: 12px 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 100; }
+.header-main { display: flex; justify-content: space-between; align-items: center; }
+.total-pts-box { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
 
-.header-main {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
+/* シミュレーター & 検索 */
+.truck-sim { background: #f8fafc; padding: 8px; border-radius: 8px; border: 1px solid var(--border); margin: 8px 0; }
+.truck-info { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; }
+.load-bar-bg { background: #e2e8f0; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 4px; }
+#load-bar-fill { height: 100%; width: 0%; background: var(--success); transition: 0.3s; }
+.search-box { display: flex; position: relative; margin-top: 8px; }
+#item-search { width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 6px; }
+#clear-search { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: none; font-size: 1.2rem; color: #94a3b8; }
 
-h1 {
-    font-size: 1.1rem;
-    margin: 0;
-    color: var(--primary);
-    font-weight: 800;
-}
+/* アコーディオン */
+.category-group { margin: 10px; background: white; border-radius: 8px; border: 1px solid var(--border); }
+.category-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; }
+.cat-subtotal { background: #f1f5f9; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
+.category-content { display: none; border-top: 1px solid #f1f5f9; }
+.category-group.open .category-content { display: block; }
 
-.total-pts-box {
-    font-size: 1.8rem;
-    font-weight: 900;
-    color: var(--primary);
-}
+/* 項目 */
+.item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #f8fafc; }
+.controls { display: flex; align-items: center; gap: 10px; }
+.btn-qty { width: 36px; height: 36px; border-radius: 50%; border: none; background: #f1f5f9; font-size: 1.2rem; }
+.btn-plus { background: var(--primary); color: white; }
 
-.total-pts-box small {
-    font-size: 0.9rem;
-    margin-left: 2px;
-}
+/* 2ページ目：結果表示 */
+.result-container { padding: 15px; }
+.summary-card { background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+.free-input-area textarea { width: 100%; height: 150px; padding: 12px; border-radius: 8px; border: 2px solid var(--border); box-sizing: border-box; font-size: 1rem; }
+.input-list-preview ul { list-style: none; padding: 0; }
+.input-list-preview li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
 
-/* トラックシミュレーター */
-.truck-sim {
-    background: #f8fafc;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-}
-
-.truck-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    font-weight: bold;
-    margin-bottom: 6px;
-}
-
-.load-bar-bg {
-    background: #e2e8f0;
-    height: 14px;
-    border-radius: 7px;
-    overflow: hidden;
-}
-
-#load-bar-fill {
-    height: 100%;
-    width: 0%;
-    background: var(--success);
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* アコーディオン本体 */
-.category-group {
-    margin: 10px;
-    background: white;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    overflow: hidden;
-    transition: box-shadow 0.2s;
-}
-
-/* 入力があるカテゴリーの強調 */
-.category-group.has-value {
-    border-left: 5px solid var(--primary);
-    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.1);
-}
-
-.category-header {
-    background: white;
-    padding: 15px;
-    cursor: pointer;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.category-header:active {
-    background: #f8fafc;
-}
-
-/* 小計バッジ */
-.cat-subtotal {
-    font-size: 0.8rem;
-    color: #64748b;
-    background: #f1f5f9;
-    padding: 2px 10px;
-    border-radius: 12px;
-    font-weight: 600;
-    margin-right: 10px;
-}
-
-.has-value .cat-subtotal {
-    color: white;
-    background: var(--primary);
-}
-
-.category-header::after {
-    content: '▼';
-    font-size: 0.6rem;
-    color: #94a3b8;
-    transition: transform 0.3s;
-}
-
-.category-group.open .category-header::after {
-    transform: rotate(180deg);
-}
-
-/* 項目リスト */
-.category-content {
-    display: none;
-    border-top: 1px solid #f1f5f9;
-}
-
-.category-group.open .category-content {
-    display: block;
-}
-
-.item-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 15px;
-    border-bottom: 1px solid #f8fafc;
-}
-
-.item-row:last-child {
-    border-bottom: none;
-}
-
-.item-info {
-    flex: 1;
-}
-
-.item-name {
-    display: block;
-    font-size: 0.95rem;
-    font-weight: 500;
-}
-
-.item-pts {
-    font-size: 0.75rem;
-    color: #64748b;
-}
-
-/* 数量コントロール */
-.controls {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.btn-qty {
-    width: 40px;
-    height: 40px;
-    border: none;
-    border-radius: 50%;
-    background: #f1f5f9;
-    font-size: 1.4rem;
-    font-weight: 400;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text);
-    transition: background 0.2s;
-}
-
-.btn-qty:active {
-    background: #e2e8f0;
-    transform: scale(0.95);
-}
-
-.btn-plus {
-    background: var(--primary);
-    color: white;
-}
-
-.btn-plus:active {
-    background: #1d4ed8;
-}
-
-.qty-val {
-    min-width: 24px;
-    text-align: center;
-    font-weight: 800;
-    font-size: 1.2rem;
-    color: var(--text);
-}
-
-/* フッター */
-footer {
-    padding: 30px 20px 50px;
-    text-align: center;
-}
-
-#reset-btn {
-    background: white;
-    color: var(--danger);
-    border: 2px solid var(--danger);
-    padding: 12px 24px;
-    border-radius: 8px;
-    width: 100%;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-#reset-btn:active {
-    background: var(--danger);
-    color: white;
-}
-
-.ver-info {
-    font-size: 0.75rem;
-    color: #94a3b8;
-    margin-top: 15px;
-}
+/* ボタン */
+.nav-btn { width: 100%; padding: 15px; border-radius: 8px; border: none; font-weight: bold; margin-top: 10px; font-size: 1rem; cursor: pointer; }
+.next { background: var(--primary); color: white; }
+.prev { background: #64748b; color: white; }
+.share { background: var(--success); color: white; }
+#reset-btn { background: none; color: var(--danger); border: none; margin-top: 10px; cursor: pointer; width: 100%; }
