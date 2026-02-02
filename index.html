@@ -3,69 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>引越見積 Ver10.0</title>
+    <title>引越見積 Ver12.0</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
-        <header>
-            <div class="header-main">
-                <h1 id="page-title">1. リビング・キッチン</h1>
-                <div class="total-pts-box"><span id="total-points">0</span><small>pt</small></div>
-            </div>
-            <div class="truck-sim">
-                <div class="truck-info">
-                    <span id="truck-name">2tショート</span>
-                    <span id="load-percent">0%</span>
+        <section id="step-1" class="step-page active">
+            <header class="sticky-header">
+                <div class="status-bar">
+                    <span class="step-title">1. 家財リスト</span>
+                    <div class="pt-badge"><span id="total-points">0</span> pt</div>
                 </div>
-                <div class="load-bar-bg"><div id="load-bar-fill"></div></div>
-            </div>
-            <div class="search-box">
-                <input type="text" id="item-search" placeholder="家財を検索（全リストから）..." autocomplete="off">
-                <button id="clear-search">×</button>
-            </div>
-        </header>
-
-        <main id="main-content">
-            <div id="search-results" class="search-results-area"></div>
-
-            <div id="item-list-container"></div>
-            
-            <div class="free-item-card">
-                <h3>＋ リストにない家財を追加</h3>
-                <div class="free-input-row">
-                    <input type="text" id="free-name" placeholder="家財名">
-                    <input type="number" id="free-pt" placeholder="pt">
-                    <button onclick="addFreeItem()">追加</button>
+                <div class="search-container">
+                    <input type="text" id="item-search" placeholder="家財を検索（例: 冷蔵庫）..." autocomplete="off">
+                    <button id="clear-search">×</button>
                 </div>
-                <div id="free-items-display"></div>
-            </div>
-        </main>
+            </header>
+            <main>
+                <div id="search-results" class="search-result-area"></div>
+                <div id="accordion-container"></div>
+                <div class="free-item-box">
+                    <h3>＋ リスト外の家財を追加</h3>
+                    <div class="free-row">
+                        <input type="text" id="free-name" placeholder="家財名">
+                        <input type="number" id="free-pt" placeholder="pt">
+                        <button onclick="addFreeItem()">追加</button>
+                    </div>
+                    <div id="free-items-list"></div>
+                </div>
+            </main>
+        </section>
 
-        <nav class="page-nav">
-            <button id="prev-btn" onclick="changePage(-1)">前へ</button>
-            <span id="page-indicator">1 / 5</span>
-            <button id="next-btn" onclick="changePage(1)">次へ</button>
+        <section id="step-2" class="step-page">
+            <header><h1>2. 付帯サービス</h1></header>
+            <main class="option-grid">
+                <label class="opt-card"><input type="checkbox" class="opt-check" data-name="エアコン脱着" data-price="16500"> エアコン脱着 (¥16,500)</label>
+                <label class="opt-card"><input type="checkbox" class="opt-check" data-name="洗濯機設置" data-price="3300"> 洗濯機設置 (¥3,300)</label>
+                <label class="opt-card"><input type="checkbox" class="opt-check" data-name="不用品回収" data-price="11000"> 不用品回収 (¥11,000〜)</label>
+                <label class="opt-card"><input type="checkbox" class="opt-check" data-name="ピアノ運送" data-price="22000"> ピアノ運送 (¥22,000)</label>
+            </main>
+        </section>
+
+        <section id="step-3" class="step-page">
+            <header><h1>3. 車両・作業員</h1></header>
+            <main class="setting-container">
+                <div class="truck-prediction">
+                    <label>自動算出・推奨車両:</label>
+                    <div id="auto-truck-name" class="truck-label">-</div>
+                    <div class="progress-container"><div id="load-bar"></div></div>
+                </div>
+                <div class="input-group">
+                    <label>車両数:</label>
+                    <input type="number" id="truck-count" value="1" min="1"> 台
+                </div>
+                <div class="input-group">
+                    <label>作業員:</label>
+                    <input type="number" id="staff-count" value="2" min="1"> 名
+                </div>
+            </main>
+        </section>
+
+        <section id="step-4" class="step-page">
+            <header><h1>4. 見積合計</h1></header>
+            <main class="result-container">
+                <div class="price-banner">
+                    <small>概算見積金額</small>
+                    <div id="final-price">¥ 0</div>
+                </div>
+                <div class="summary-box">
+                    <h3>■ 見積内訳</h3>
+                    <ul id="summary-items"></ul>
+                </div>
+                <button class="action-btn copy" onclick="copyResult()">結果をコピー</button>
+                <button class="action-btn reset" onclick="resetData()">全リセット</button>
+            </main>
+        </section>
+
+        <nav class="bottom-nav">
+            <button onclick="moveStep(-1)" id="prev-btn">前へ</button>
+            <div id="step-indicator">Step 1 / 4</div>
+            <button onclick="moveStep(1)" id="next-btn">次へ</button>
         </nav>
     </div>
-
-    <div id="result-modal" class="modal">
-        <div class="modal-content">
-            <h2>見積最終結果</h2>
-            <div class="summary-card">
-                <h3 id="final-truck">-</h3>
-                <p id="final-total">0 pt</p>
-            </div>
-            <div class="final-list-container">
-                <h3>選択済み家財</h3>
-                <ul id="final-item-list"></ul>
-            </div>
-            <button class="nav-btn share" onclick="copyResult()">結果をコピーしてLINEへ</button>
-            <button class="nav-btn close" onclick="closeResult()">入力に戻る</button>
-            <button id="reset-btn" onclick="resetAll()">全データをリセット</button>
-        </div>
-    </div>
-
     <script src="item_list.js"></script>
     <script src="app.js"></script>
 </body>
