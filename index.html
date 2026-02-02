@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>引越見積システム Ver8.5</title>
+    <title>引越見積システム Ver9.0</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,51 +11,60 @@
         <div id="page-1" class="page active">
             <header>
                 <div class="header-main">
-                    <h1>家財集計</h1>
+                    <h1>家財入力</h1>
                     <div class="total-pts-box"><span id="total-points">0</span><small>pt</small></div>
                 </div>
                 <div class="truck-sim">
-                    <div class="truck-info"><span id="truck-name">推奨：2tショート</span><span id="load-percent">0%</span></div>
+                    <div class="truck-info"><span id="truck-name">2tショート</span><span id="load-percent">0%</span></div>
                     <div class="load-bar-bg"><div id="load-bar-fill"></div></div>
                 </div>
                 <div class="search-box">
-                    <input type="text" id="item-search" placeholder="家具名で検索..." autocomplete="off">
+                    <input type="text" id="item-search" placeholder="家具名を検索（予測変換）..." autocomplete="off">
                     <button id="clear-search">×</button>
                 </div>
             </header>
 
-            <main id="accordion-container"></main>
+            <main>
+                <div id="search-results" class="search-results-area"></div>
+
+                <div id="accordion-container"></div>
+
+                <div class="free-item-card">
+                    <h3>＋ リストにない家財を追加</h3>
+                    <div class="free-input-row">
+                        <input type="text" id="free-name" placeholder="家財名">
+                        <input type="number" id="free-pt" placeholder="pt">
+                        <button onclick="addFreeItem()">追加</button>
+                    </div>
+                    <div id="free-items-display"></div>
+                </div>
+            </main>
 
             <footer>
-                <button class="nav-btn next" onclick="switchPage(2)">次へ（結果確認）</button>
-                <button id="reset-btn">全データリセット</button>
+                <button class="nav-btn next" onclick="switchPage(2)">見積結果を確認する ＞</button>
+                <button id="reset-btn">全てのデータを消去</button>
             </footer>
         </div>
 
         <div id="page-2" class="page">
             <header>
-                <h1>見積詳細・メモ</h1>
+                <div class="header-main">
+                    <button class="back-link" onclick="switchPage(1)">＜ 戻る</button>
+                    <h1>最終見積</h1>
+                </div>
             </header>
             <main class="result-container">
                 <div class="summary-card">
-                    <h3>積載予測</h3>
-                    <p id="final-truck">-</p>
-                    <p id="final-points">合計: 0 pt</p>
+                    <h2 id="final-truck-name">-</h2>
+                    <p id="final-total-pts">合計: 0 pt</p>
                 </div>
-
-                <div class="free-input-area">
-                    <h3>現場メモ・フリー入力欄</h3>
-                    <textarea id="free-memo" placeholder="特記事項（例：養生注意、タワーマンション等）や、リストにない家財を入力してください。"></textarea>
-                </div>
-
-                <div class="input-list-preview">
-                    <h3>集計済み家財</h3>
-                    <ul id="selected-items-list"></ul>
+                <div class="result-list-box">
+                    <h3>選択済み家財一覧</h3>
+                    <ul id="final-item-list"></ul>
                 </div>
             </main>
             <footer>
-                <button class="nav-btn prev" onclick="switchPage(1)">戻る</button>
-                <button class="nav-btn share" onclick="copyToClipboard()">内容をコピー</button>
+                <button class="nav-btn share" onclick="copyResult()">結果をコピーしてLINEへ</button>
             </footer>
         </div>
     </div>
